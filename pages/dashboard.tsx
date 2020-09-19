@@ -2,10 +2,10 @@ import { Container, Row, Col } from 'react-bootstrap';
 
 import Header from '../components/Header';
 
-export default function Home() {
+export default function Dashboard() {
   return (
     <>
-      <Header title="Login" activeKey='login'/>
+      <Header title="Dashboard" activeKey='login'/>
       <Container fluid="md">
         
         <Row>

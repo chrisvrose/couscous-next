@@ -5,7 +5,7 @@ import { Nav, NavItem, Navbar, NavbarBrand } from 'react-bootstrap';
 
 export interface HeaderProps {
     title: string,
-    activeKey?: 'home'|'login'
+    activeKey?: 'home' | 'login'
 }
 
 export default function Header(props: HeaderProps) {
@@ -16,13 +16,15 @@ export default function Header(props: HeaderProps) {
                 <title>{props.title}</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <Navbar bg='dark' expand='md' sticky='top' variant='dark'>
+            <Navbar bg='dark' expand='md' fixed='top' variant='dark' className='card-1 justify-content-center'>
                 <Navbar.Brand>Couscous</Navbar.Brand>
-                <Navbar.Collapse>
-                    <Nav activeKey={props.activeKey}>
+                <Navbar.Toggle aria-controls="navbar-toggleable" />
+                <Navbar.Collapse id="navbar-toggleable">
+                    <Nav activeKey={props.activeKey} className="mr-auto">
                         <Link href='/' passHref><Nav.Link eventKey='home'>Home</Nav.Link></Link>
                         <Link href='/login' passHref><Nav.Link eventKey='login'>Login</Nav.Link></Link>
                     </Nav>
+                    
                 </Navbar.Collapse>
             </Navbar>
         </>
