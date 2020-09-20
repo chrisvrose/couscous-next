@@ -1,0 +1,33 @@
+version: "3"
+
+services:
+    web:
+        image: docker.pkg.github.com/ieee-rvce/site-rear/site-rear:latest
+        restart: always
+        ports:
+            - 8080:3000
+        environment: 
+            - MYSQL_DATABASE=couscous
+            - MYSQL_USER=couscous
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_HOST=msqldb
+            - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+        links:
+            - msqldb
+        depends_on:
+            - msqldb
+    msqldb:
+        image: mysql
+        restart: always
+        ports:
+            - 3306:3306
+        volumes:
+            - mysqldata:/var/lib/mysql
+            - ./misc/dbinit:/docker-entrypoint-initdb.d/:ro
+        environment:
+            - MYSQL_DATABASE=couscous
+            - MYSQL_USER=couscous
+            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+volumes:
+    mysqldata:
