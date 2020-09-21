@@ -1,0 +1,12 @@
+version: "3"
+
+services:
+    web:
+        build: .
+        volumes: 
+            - ./:/usr/share/app
+        command: npm run dev
+        environment:
+            - NODE_OPTIONS='--inspect'
+        ports:
+            - 4567:9229
