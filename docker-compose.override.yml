@@ -10,3 +10,43 @@ services:
       - NODE_OPTIONS='--inspect'
     ports:
       - 4567:9229
+  mongosh1:
+    container_name: mongosh1
+    hostname: mongosh1
+    image: mongo
+    command: --shardsvr --replSet mongosh1 --dbpath /data/db --port 27017
+    ports:
+      - 27027:27017
+    expose:
+      - "27017"
+    environment:
+      - REPLSETNAME=mongosh1
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet) -eq 1
+      interval: 10s
+      start_period: 30s
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongos1:/data/db
+  mongosh2:
+    container_name: mongosh2
+    hostname: mongosh2
+    image: mongo
+    command: --shardsvr --replSet mongosh2  --dbpath /data/db --port 27017
+    ports:
+      - 27028:27017
+    environment:
+      - REPLSETNAME=mongosh2
+    expose:
+      - "27017"
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet) -eq 1
+      interval: 10s
+      start_period: "30"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongos2:/data/db
+
+volumes:
+  mongos1:
+  mongos2:

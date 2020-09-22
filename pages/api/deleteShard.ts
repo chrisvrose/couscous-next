@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 
 /* For this we need :
- * 1. Add shard here - need to contact the elders
+ * 2. Remove shard here - need to contact the elders
  */
 
 import assert from 'assert';
@@ -16,7 +16,7 @@ export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
 
         await mongos.connect();
         const db = mongos.db('admin');
-        const resp = await db.command({ addShard: location });
+        const resp = await db.command({ removeShard: location });
 
         res.status(200).json({ ok: true, shard: resp });
     } catch (err) {
