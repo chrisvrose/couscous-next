@@ -1,8 +1,21 @@
 {
-    "extends": [
-        "nextjs"
-    ],
-    "rules": {
-        "semi":"error"
-    }
+  "extends": [
+    "nextjs",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript"
+  ],
+  "rules": {
+    "semi": "error",
+    "import/extensions": [
+      "error",
+      "ignorePackages",
+      {
+        "js": "never",
+        "jsx": "never",
+        "ts": "never",
+        "tsx": "never"
+      }
+    ]
+  }
 }

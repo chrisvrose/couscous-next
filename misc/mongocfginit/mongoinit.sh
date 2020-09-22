@@ -16,8 +16,8 @@ sleep 30
 
 echo '--making initial shards--'
 mongo "localhost:27017" -- <<JS
-    sh.addShard("mongosh1/mongosh1:27017")
-    sh.addShard("mongosh2/mongosh2:27017")
+    // sh.addShard("mongosh1/mongosh1:27017")
+    // sh.addShard("mongosh2/mongosh2:27017")
     sh.enableSharding("test")
     db.adminCommand( { shardCollection: "test.fs.chunks", key: { files_id: "hashed" } } )
     db.adminCommand( { shardCollection: "test.fs.files", key: { files_id: "hashed" } } )
