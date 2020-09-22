@@ -93,33 +93,11 @@ services:
             - mongosdata:/etc/mongos
         ports:
             - 27017:27017
-    mongosh1:
-        container_name: mongosh1
-        image: mongo
-        command: --shardsvr --replSet mongosh1 --dbpath /data/db --port 27017
-        ports:
-            - 27027:27017
-        expose:
-            - "27017"
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongos1:/data/db
-    mongosh2:
-        container_name: mongosh2
-        image: mongo
-        command: --shardsvr --replSet mongosh2  --dbpath /data/db --port 27017
-        ports:
-            - 27028:27017
-        expose:
-            - "27017"
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongos2:/data/db
+    
 volumes:
     mysqldata:
     mongosdata:
     mongocfg1data:
     mongocfg2data:
     mongocfg3data:
-    mongos1:
-    mongos2:
+    

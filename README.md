@@ -5,6 +5,7 @@
   - [TOC](#toc)
   - [Getting Started](#getting-started)
 - [Docker Compose](#docker-compose)
+  - [Disclaimer](#disclaimer)
   - [.env config](#env-config)
   - [Portmap](#portmap)
 
@@ -21,21 +22,27 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 # Docker Compose
 
+## Disclaimer
+
+Please run `misc/mongocfginit/mongoinit.sh` on first run of the system. Modify the ports the script connects to.
+
 ## .env config
 
-|Var|Desc|
-|---|----|
-|MYSQL_PASSWORD|mysql `couscous` password|
-|MYSQL_ROOT_PASSWORD|mysql `root` password|
-|ACCESS_TOKEN_SECRET|JWT access token secret|
-|`TBD`|`TBD`|
+|Var                |Desc                     |
+|-------------------|-------------------------|
+|MYSQL_PASSWORD     |mysql `couscous` password|
+|MYSQL_ROOT_PASSWORD|mysql `root` password    |
+|ACCESS_TOKEN_SECRET|JWT access token secret  |
+|`TBD`              |`TBD`                    |
 
 
 ## Portmap
 
-|Port|Application|
-|---|---|
-|8081|next|
-|3306|mysql|
-|27017|mongos|
-|27018|mongodb cfg1|
+|Port |Application  |
+|-----|-------------|
+|8081 |next         |
+|3306 |mysql        |
+|27017|mongos       |
+|27018|mongodb cfg1 |
+|27027|mongo shard 1|
+|27028|mongo shard 2|
