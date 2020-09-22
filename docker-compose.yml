@@ -1,4 +1,4 @@
-version: "3"
+version: "3.4"
 
 services:
   web:
@@ -32,9 +32,9 @@ services:
       - MYSQL_USER=couscous
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-  mongocfg1:
-    container_name: mongocfg1
-    hostname: mongocfg1
+  mongocfg:
+    container_name: mongocfg
+    hostname: mongocfg
     image: mongo
     command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
     expose:
@@ -42,52 +42,25 @@ services:
     ports:
       - "27018:27017"
     environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongocfg1
-    depends_on:
-      - mongocfg2
-      - mongocfg3
+      - MONGODB_ADVERTISED_HOSTNAME=mongocfg
+    healthcheck:
+      test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet) -eq 1
+      interval: 10s
+      start_period: "30"
     volumes:
-      - ./misc/mongocfginit/:/docker-entrypoint-initdb.d:ro
+      # - ./misc/mongocfginit/:/docker-entrypoint-initdb.d:ro
       - /etc/localtime:/etc/localtime:ro
-      - mongocfg1data:/data/db
-  mongocfg2:
-    container_name: mongocfg2
-    hostname: mongocfg2
-    image: mongo
-    command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
-    environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongocfg2
-    expose:
-      - "27017"
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - mongocfg2data:/data/db
-  mongocfg3:
-    container_name: mongocfg3
-    hostname: mongocfg3
-    image: mongo
-    command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
-    expose:
-      - "27017"
-    environment:
-      - MONGODB_ADVERTISED_HOSTNAME=mongocfg3
-    volumes:
-      - /etc/localtime:/etc/localtime:ro
-      - mongocfg3data:/data/db
+      - mongocfgdata:/data/db
   mongosdb:
     container_name: mongosdb
     hostname: mongosdb
     image: mongo
     restart: always
-    entrypoint: mongos --configdb mongocfg/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
+    entrypoint: mongos --configdb mongocfg/mongocfg:27017 --port 27017 --bind_ip_all
     depends_on:
-      - mongocfg1
-      - mongocfg2
-      - mongocfg3
+      - mongocfg
     links:
-      - mongocfg1
-      - mongocfg2
-      - mongocfg3
+      - mongocfg
     expose:
       - "27017"
     environment:
@@ -102,6 +75,4 @@ services:
 volumes:
   mysqldata:
   mongosdata:
-  mongocfg1data:
-  mongocfg2data:
-  mongocfg3data:
+  mongocfgdata:
