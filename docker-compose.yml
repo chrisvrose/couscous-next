@@ -34,6 +34,7 @@ services:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
   mongocfg1:
     container_name: mongocfg1
+    hostname: mongocfg1
     image: mongo
     command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
     expose:
@@ -46,10 +47,12 @@ services:
       - mongocfg2
       - mongocfg3
     volumes:
+      - ./misc/mongocfginit/:/docker-entrypoint-initdb.d:ro
       - /etc/localtime:/etc/localtime:ro
       - mongocfg1data:/data/db
   mongocfg2:
     container_name: mongocfg2
+    hostname: mongocfg2
     image: mongo
     command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
     environment:
@@ -61,6 +64,7 @@ services:
       - mongocfg2data:/data/db
   mongocfg3:
     container_name: mongocfg3
+    hostname: mongocfg3
     image: mongo
     command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
     expose:
@@ -72,6 +76,7 @@ services:
       - mongocfg3data:/data/db
   mongosdb:
     container_name: mongosdb
+    hostname: mongosdb
     image: mongo
     restart: always
     entrypoint: mongos --configdb mongocfg/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
@@ -88,6 +93,7 @@ services:
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=mongosdb
     volumes:
+      - ./misc/mongocfginit/:/docker-entrypoint-initdb.d:ro
       - /etc/localtime:/etc/localtime:ro
       - mongosdata:/etc/mongos
     ports:
