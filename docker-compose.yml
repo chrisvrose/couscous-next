@@ -1,103 +1,101 @@
 version: "3"
 
 services:
-    web:
-        image: docker.pkg.github.com/chrisvrose/couscous-next
-        restart: always
-        ports:
-            - 8081:3000
-        environment: 
-            - MYSQL_DATABASE=couscous
-            - MYSQL_USER=couscous
-            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-            - MYSQL_HOST=mysqldb
-            - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
-            - MONGOSDB_HOST=mongosdb
-        links:
-            - mysqldb
-            - mongosdb
-        depends_on:
-            - mysqldb
-            - mongosdb
-    mysqldb:
-        image: mysql
-        restart: always
-        ports:
-            - 3306:3306
-        volumes:
-            - mysqldata:/var/lib/mysql
-            - ./misc/dbinit:/docker-entrypoint-initdb.d/:ro
-        environment:
-            - MYSQL_DATABASE=couscous
-            - MYSQL_USER=couscous
-            - MYSQL_PASSWORD=${MYSQL_PASSWORD}
-            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD} 
-    mongocfg1:
-        container_name: mongocfg1
-        image: mongo
-        command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
-        expose:
-            - "27017"
-        ports:
-            - "27018:27017"
-        environment: 
-            - MONGODB_ADVERTISED_HOSTNAME=mongocfg1
-        depends_on:
-            - mongocfg2
-            - mongocfg3
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongocfg1data:/data/db
-    mongocfg2:
-        container_name: mongocfg2
-        image: mongo
-        command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
-        environment: 
-            - MONGODB_ADVERTISED_HOSTNAME=mongocfg2
-        expose:
-            - "27017"
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongocfg2data:/data/db
-    mongocfg3:
-        container_name: mongocfg3
-        image: mongo
-        command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
-        expose:
-            - "27017"
-        environment: 
-            - MONGODB_ADVERTISED_HOSTNAME=mongocfg3
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongocfg3data:/data/db
-    mongosdb:
-        image: mongo
-        restart: always
-        entrypoint: mongos --configdb mongocfg/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
-        depends_on:
-            - mongocfg1
-            - mongocfg2
-            - mongocfg3
-            - mongosh1
-            - mongosh2
-        links:
-            - mongocfg1
-            - mongocfg2
-            - mongocfg3
-        expose:
-            - "27017"
-        environment: 
-            - MONGODB_ADVERTISED_HOSTNAME=mongosdb
-        volumes:
-            - /etc/localtime:/etc/localtime:ro
-            - mongosdata:/etc/mongos
-        ports:
-            - 27017:27017
-    
+  web:
+    image: docker.pkg.github.com/chrisvrose/couscous-next
+    restart: always
+    ports:
+      - 8081:3000
+    environment:
+      - MYSQL_DATABASE=couscous
+      - MYSQL_USER=couscous
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_HOST=mysqldb
+      - ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+      - MONGOSDB_HOST=mongosdb
+    links:
+      - mysqldb
+      - mongosdb
+    depends_on:
+      - mysqldb
+      - mongosdb
+  mysqldb:
+    image: mysql
+    restart: always
+    ports:
+      - 3306:3306
+    volumes:
+      - mysqldata:/var/lib/mysql
+      - ./misc/dbinit:/docker-entrypoint-initdb.d/:ro
+    environment:
+      - MYSQL_DATABASE=couscous
+      - MYSQL_USER=couscous
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+  mongocfg1:
+    container_name: mongocfg1
+    image: mongo
+    command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
+    expose:
+      - "27017"
+    ports:
+      - "27018:27017"
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongocfg1
+    depends_on:
+      - mongocfg2
+      - mongocfg3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongocfg1data:/data/db
+  mongocfg2:
+    container_name: mongocfg2
+    image: mongo
+    command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongocfg2
+    expose:
+      - "27017"
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongocfg2data:/data/db
+  mongocfg3:
+    container_name: mongocfg3
+    image: mongo
+    command: --configsvr --replSet mongocfg --dbpath /data/db --port 27017 --bind_ip_all
+    expose:
+      - "27017"
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongocfg3
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongocfg3data:/data/db
+  mongosdb:
+    container_name: mongosdb
+    image: mongo
+    restart: always
+    entrypoint: mongos --configdb mongocfg/mongocfg1:27017,mongocfg2:27017,mongocfg3:27017 --port 27017 --bind_ip_all
+    depends_on:
+      - mongocfg1
+      - mongocfg2
+      - mongocfg3
+    links:
+      - mongocfg1
+      - mongocfg2
+      - mongocfg3
+    expose:
+      - "27017"
+    environment:
+      - MONGODB_ADVERTISED_HOSTNAME=mongosdb
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - mongosdata:/etc/mongos
+    ports:
+      - 27017:27017
+
 volumes:
-    mysqldata:
-    mongosdata:
-    mongocfg1data:
-    mongocfg2data:
-    mongocfg3data:
-    
+  mysqldata:
+  mongosdata:
+  mongocfg1data:
+  mongocfg2data:
+  mongocfg3data:

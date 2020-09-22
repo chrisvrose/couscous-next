@@ -1,17 +1,25 @@
-import { Container } from 'react-bootstrap';
+import Link from 'next/link';
+import { Col, Container, Row } from 'react-bootstrap';
 import Header from '../components/Header';
 
-interface ErrorDesc {
-    errorType?: string;
-}
-
-export default function Error404(props: ErrorDesc) {
+export default function Error404() {
     return (
         <>
             <Header title="Not found" />
             <Container>
-                <div>This is an error</div>
-                <div>{props?.errorType}</div>
+                <Row>
+                    <Col>404</Col>
+                </Row>
+                <Row>
+                    <Col md={6}>Page not found</Col>
+                    <Col md={6}>
+                        Go{' '}
+                        <Link href="/">
+                            <a>back</a>
+                        </Link>{' '}
+                        to safety.
+                    </Col>
+                </Row>
             </Container>
         </>
     );
