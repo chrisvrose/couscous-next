@@ -21,10 +21,13 @@ services:
       - mongosdb
   mysqldb:
     image: mysql
+    hostname: mysqldb
     restart: always
     ports:
       - 3306:3306
+    command: --default-authentication-plugin=mysql_native_password
     volumes:
+      - /etc/localtime:/etc/localtime:ro
       - mysqldata:/var/lib/mysql
       - ./misc/dbinit:/docker-entrypoint-initdb.d/:ro
     environment:
@@ -40,15 +43,14 @@ services:
     expose:
       - "27017"
     ports:
-      - "27018:27017"
+      - 27018:27017
     environment:
       - MONGODB_ADVERTISED_HOSTNAME=mongocfg
     healthcheck:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet) -eq 1
       interval: 10s
-      start_period: "30"
+      start_period: 30s
     volumes:
-      # - ./misc/mongocfginit/:/docker-entrypoint-initdb.d:ro
       - /etc/localtime:/etc/localtime:ro
       - mongocfgdata:/data/db
   mongosdb:

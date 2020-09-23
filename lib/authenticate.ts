@@ -16,7 +16,7 @@ export interface JWTPayload {
  * @param req Request
  * @param res Response
  */
-export default async function auth(req: NextApiRequest, res: NextApiResponse) {
+export async function auth(req: NextApiRequest, res: NextApiResponse) {
     const authHeader = res.getHeader('authorization')?.toString();
     const atoken = authHeader?.split(' ')[1];
     console.log(atoken);

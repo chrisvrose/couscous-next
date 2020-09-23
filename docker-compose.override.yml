@@ -7,7 +7,7 @@ services:
       - ./:/usr/share/app
     command: npm run dev
     environment:
-      - NODE_OPTIONS='--inspect'
+      - "NODE_OPTIONS='--inspect'"
     ports:
       - 4567:9229
   mongosh1:
@@ -42,7 +42,7 @@ services:
     healthcheck:
       test: test $$(echo "rs.initiate().ok || rs.status().ok" | mongo --quiet) -eq 1
       interval: 10s
-      start_period: "30"
+      start_period: 30s
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - mongos2:/data/db
