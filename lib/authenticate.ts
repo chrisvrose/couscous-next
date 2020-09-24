@@ -8,7 +8,7 @@ import jwt from 'jsonwebtoken';
 import { NextApiRequest, NextApiResponse } from 'next';
 
 export interface JWTPayload {
-    uid: string;
+    uid: number;
 }
 
 /**
@@ -17,10 +17,12 @@ export interface JWTPayload {
  * @param res Response
  */
 export async function auth(req: NextApiRequest, res: NextApiResponse) {
-    const authHeader = res.getHeader('authorization')?.toString();
+    // const authHeader = res.getHeader('authorization')?.toString();
+    const authHeader = req.headers.authorization;
     const atoken = authHeader?.split(' ')[1];
-    console.log(atoken);
-    throw Error('REEE');
+    // do something with atoken
+    throw Error('not auth');
+    // return true;
 }
 
 /**
