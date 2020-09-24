@@ -2,10 +2,10 @@ import { assert } from "console";
 import { ResultSetHeader } from "mysql2";
 import { GenerateJWToken } from "../authenticate";
 import db from "./db";
+
 /**
  * Manages refresh tokens
  */
-
 export default {
     /**
      * Add an authtoken to user
@@ -24,6 +24,23 @@ export default {
             return atoken;
         } catch (e) {
             return null;
+        }
+    },
+
+    async get(uid: number, atoken: string) {
+        try {
+            const [
+                rows,
+                field,
+            ] = await db.execute(
+                "SELECT COUNT(*) as count from atokens where uid=? and atoken=?;",
+                [uid, atoken]
+            );
+            const { count } = rows[0];
+            console.log(rows, field);
+            return count === 1;
+        } catch (e) {
+            return false;
         }
     },
 };

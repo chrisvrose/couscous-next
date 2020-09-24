@@ -5,12 +5,7 @@
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next start",
-        "lint": "eslint .",
-        "lint:fix": "eslint . --fix"
-    },
-    "prettier": {
-        "tabWidth": 4
+        "start": "next start"
     },
     "dependencies": {
         "bcryptjs": "^2.4.3",
