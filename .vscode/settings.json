@@ -1,13 +1,5 @@
 {
-    "eslint.enable": true,
-    "eslint.validate": [
-        "typescript",
-        "javascript",
-        "typescriptreact",
-        "javascriptreact"
-    ],
     "editor.codeActionsOnSave": {
-        "source.fixAll.eslint": true,
         "source.organizeImports": true
     },
     "editor.formatOnSave": true
