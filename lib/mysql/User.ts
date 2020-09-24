@@ -1,7 +1,7 @@
-import bcrypt from "bcryptjs";
-import { assert } from "console";
-import { RowDataPacket } from "mysql2";
-import db from "./db";
+import bcrypt from 'bcryptjs';
+import { assert } from 'console';
+import { RowDataPacket } from 'mysql2';
+import db from './db';
 
 export default {
     /**
@@ -12,11 +12,11 @@ export default {
     async authPass(email: string, pwd: string) {
         try {
             const rf = await db.execute(
-                "select uid,pwd from users where email=?;",
+                'select uid,pwd from users where email=?;',
                 [email]
             );
             const rows = rf[0] as RowDataPacket[];
-            assert(rows.length === 1, "could not get auth");
+            assert(rows.length === 1, 'could not get auth');
             const expectedPwd: string = rows[0].pwd;
             // assert(rows === 1, 'Need to have exactly 1 result back');
             if (bcrypt.compare(pwd, expectedPwd)) {

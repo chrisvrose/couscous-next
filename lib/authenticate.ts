@@ -4,9 +4,9 @@
  * then, throw an error if the jwt doesnt work
  */
 
-import jwt from "jsonwebtoken";
-import { NextApiRequest } from "next";
-import AuthToken from "./mysql/AuthToken";
+import jwt from 'jsonwebtoken';
+import { NextApiRequest } from 'next';
+import AuthToken from './mysql/AuthToken';
 
 export interface JWTPayload {
     uid: number;
@@ -20,7 +20,7 @@ export interface JWTPayload {
 export async function auth(req: NextApiRequest) {
     // const authHeader = res.getHeader('authorization')?.toString();
     const authHeader = req.headers.authorization;
-    const atoken = authHeader?.split(" ")[1];
+    const atoken = authHeader?.split(' ')[1];
     // do something with atoken
     // const contents = jwt.verify(atoken,process.env.ACCESS_TOKEN_SECRET)
     return new Promise<number>((res, rej) => {
@@ -36,7 +36,7 @@ export async function auth(req: NextApiRequest) {
                     if (isLoggedIn) {
                         res(uidnumber);
                     } else {
-                        rej(Error("could not auth"));
+                        rej(Error('could not auth'));
                     }
                 },
                 rejreason => {
@@ -46,7 +46,7 @@ export async function auth(req: NextApiRequest) {
         });
     });
 
-    throw Error("not auth");
+    throw Error('not auth');
     // return true;
 }
 

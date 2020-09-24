@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
-import { NextApiRequest, NextApiResponse } from "next";
-import { auth } from "../../lib/authenticate";
-import status from "../../lib/response";
+import { NextApiRequest, NextApiResponse } from 'next';
+import { auth } from '../../lib/authenticate';
+import status from '../../lib/response';
 
 export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
     try {
@@ -11,7 +11,7 @@ export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
         res.status(500).json({
             ok: false,
             test: false,
-            status: e?.message ?? "Could not perform",
+            status: e?.message ?? 'Could not perform',
         });
     }
 };
