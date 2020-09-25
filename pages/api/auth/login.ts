@@ -2,37 +2,30 @@
 
 import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
-import AuthToken from '../../../lib/mysql/AuthToken';
-import User from '../../../lib/mysql/User';
+import APIErrorHandler from '../../../lib/APIErrorHandler';
+import * as AuthToken from '../../../lib/mysql/AuthToken';
+import * as User from '../../../lib/mysql/User';
 import status from '../../../lib/types/Response';
+import ResponseError from '../../../lib/types/ResponseError';
 
-export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
-    try {
-        // assert that they exist
-        assert(req.body.email, 'expected email');
-        assert(req.body.pwd, 'expected pwd');
+async function login(req: NextApiRequest, res: NextApiResponse<status>) {
+    // assert that they exist
+    assert(req.body.email, 'expected email');
+    assert(req.body.pwd, 'expected pwd');
 
-        // now pass them onto User to validate
+    // now pass them onto User to validate
 
-        const authuid = await User.authPass(req.body.email, req.body.pwd);
-        if (authuid) {
-            const atoken = await AuthToken.add(authuid);
-            if (atoken) {
-                res.json({ ok: true, uid: authuid, atoken });
-            } else {
-                throw Error('could not allocate access token');
-            }
+    const authuid = await User.authPass(req.body.email, req.body.pwd);
+    if (authuid) {
+        const atoken = await AuthToken.add(authuid.uid);
+        if (atoken) {
+            res.json({ ok: true, uid: authuid.uid, atoken });
         } else {
-            res.status(403).json({ ok: false, auth: authuid });
+            throw new ResponseError('could not allocate access token');
         }
-
-        // const token = await AuthToken.add(1);
-        // if (token) {
-        //     res.status(200).json({ ok: true });
-        // } else {
-        //     throw Error('No authtoken');
-        // }
-    } catch (err) {
-        res.status(500).json({ ok: false, status: err?.message ?? 'error' });
+    } else {
+        throw new ResponseError('could not auth', 403);
     }
-};
+}
+
+export default APIErrorHandler(login);

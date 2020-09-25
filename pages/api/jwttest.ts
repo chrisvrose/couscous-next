@@ -1,9 +1,10 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next';
+import APIErrorHandler from '../../lib/APIErrorHandler';
 import { auth } from '../../lib/authenticate';
 import status from '../../lib/types/Response';
 
-export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
+async function jwttest(req: NextApiRequest, res: NextApiResponse<status>) {
     try {
         await auth(req);
         res.status(200).json({ ok: true, test: true });
@@ -14,4 +15,6 @@ export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
             status: e?.message ?? 'Could not perform',
         });
     }
-};
+}
+
+export default APIErrorHandler(jwttest);

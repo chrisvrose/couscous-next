@@ -6,10 +6,16 @@
 
 import jwt from 'jsonwebtoken';
 import { NextApiRequest } from 'next';
-import AuthToken from './mysql/AuthToken';
+import * as AuthToken from './mysql/AuthToken';
+import ResponseError from './types/ResponseError';
 
 export interface JWTPayload {
     uid: number;
+}
+
+export interface authResult {
+    uid: number;
+    atoken: string;
 }
 
 /**
@@ -17,13 +23,13 @@ export interface JWTPayload {
  * @param req Request
  * @param res Response
  */
-export async function auth(req: NextApiRequest) {
+export async function auth(req: NextApiRequest): Promise<authResult> {
     // const authHeader = res.getHeader('authorization')?.toString();
     const authHeader = req.headers.authorization;
     const atoken = authHeader?.split(' ')[1];
     // do something with atoken
     // const contents = jwt.verify(atoken,process.env.ACCESS_TOKEN_SECRET)
-    return new Promise<number>((res, rej) => {
+    return new Promise<authResult>((res, rej) => {
         jwt.verify(atoken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) {
                 rej(err);
@@ -34,9 +40,9 @@ export async function auth(req: NextApiRequest) {
             AuthToken.getExists(uidnumber, atoken).then(
                 isLoggedIn => {
                     if (isLoggedIn) {
-                        res(uidnumber);
+                        res({ uid: uidnumber, atoken });
                     } else {
-                        rej(Error('could not auth'));
+                        rej(new ResponseError('could not auth', 403));
                     }
                 },
                 rejreason => {
@@ -45,9 +51,6 @@ export async function auth(req: NextApiRequest) {
             );
         });
     });
-
-    throw Error('not auth');
-    // return true;
 }
 
 /**
