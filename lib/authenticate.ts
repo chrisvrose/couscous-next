@@ -31,7 +31,7 @@ export async function auth(req: NextApiRequest) {
             }
             const { uid } = <{ uid: string }>user;
             const uidnumber = parseInt(uid);
-            AuthToken.get(uidnumber, atoken).then(
+            AuthToken.getExists(uidnumber, atoken).then(
                 isLoggedIn => {
                     if (isLoggedIn) {
                         res(uidnumber);

@@ -27,7 +27,12 @@ export default {
         }
     },
 
-    async get(uid: number, atoken: string) {
+    /**
+     * Validate if jwt exists for a given user
+     * @param uid User id from JWT
+     * @param atoken AuthToken string
+     */
+    async getExists(uid: number, atoken: string) {
         try {
             const [
                 rows,

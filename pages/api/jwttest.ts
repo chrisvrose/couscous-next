@@ -1,7 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import { NextApiRequest, NextApiResponse } from 'next';
 import { auth } from '../../lib/authenticate';
-import status from '../../lib/response';
+import status from '../../lib/types/Response';
 
 export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
     try {

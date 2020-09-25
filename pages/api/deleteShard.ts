@@ -7,7 +7,7 @@
 import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { mongos } from '../../lib/mongo/database';
-import status from '../../lib/response';
+import status from '../../lib/types/Response';
 
 export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
     const location = req.body?.loc;
