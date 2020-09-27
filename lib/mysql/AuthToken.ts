@@ -58,3 +58,16 @@ export async function remove(uid: number, atoken: string) {
         return false;
     }
 }
+
+export async function removeAll(uid: number) {
+    try {
+        const [
+            rows,
+            field,
+        ] = await db.execute('DELETE FROM atokens WHERE uid=?', [uid]);
+        const result = <ResultSetHeader>rows;
+        return result?.affectedRows >= 0;
+    } catch (e) {
+        return false;
+    }
+}
