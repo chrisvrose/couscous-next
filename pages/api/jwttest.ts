@@ -5,16 +5,8 @@ import { auth } from '../../lib/authenticate';
 import status from '../../lib/types/Response';
 
 async function jwttest(req: NextApiRequest, res: NextApiResponse<status>) {
-    try {
-        await auth(req);
-        res.status(200).json({ ok: true, test: true });
-    } catch (e) {
-        res.status(500).json({
-            ok: false,
-            test: false,
-            status: e?.message ?? 'Could not perform',
-        });
-    }
+    await auth(req);
+    res.status(200).json({ ok: true, test: true });
 }
 
 export default APIErrorHandler(jwttest);

@@ -7,7 +7,7 @@ services:
       - ./:/usr/share/app
     command: npm run dev
     environment:
-      - "NODE_OPTIONS='--inspect'"
+      - NODE_OPTIONS='--inspect=0.0.0.0:9229'
     ports:
       - 4567:9229
   mongosh1:

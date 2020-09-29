@@ -24,9 +24,9 @@ export interface authResult {
  * @param res Response
  */
 export async function auth(req: NextApiRequest): Promise<authResult> {
-    // const authHeader = res.getHeader('authorization')?.toString();
-    const authHeader = req.headers.authorization;
-    const atoken = authHeader?.split(' ')[1];
+    const { atoken } = req.cookies;
+    // const authHeader = req.headers.authorization;
+    // const atoken = authHeader?.split(' ')[1];
     // do something with atoken
     // const contents = jwt.verify(atoken,process.env.ACCESS_TOKEN_SECRET)
     return new Promise<authResult>((res, rej) => {
@@ -58,5 +58,7 @@ export async function auth(req: NextApiRequest): Promise<authResult> {
  * @param payload payload to sign
  */
 export async function GenerateJWToken(payload: JWTPayload) {
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET);
+    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '3d',
+    });
 }
