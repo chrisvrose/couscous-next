@@ -19,6 +19,8 @@ services:
       - 27027:27017
     expose:
       - "27017"
+    depends_on:
+      - mongocfg
     environment:
       - REPLSETNAME=mongosh1
     healthcheck:
@@ -35,6 +37,8 @@ services:
     command: --shardsvr --replSet mongosh2  --dbpath /data/db --port 27017
     ports:
       - 27028:27017
+    depends_on:
+      - mongocfg
     environment:
       - REPLSETNAME=mongosh2
     expose:
