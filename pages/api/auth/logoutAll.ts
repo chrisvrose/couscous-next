@@ -2,7 +2,7 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import APIErrorHandler from '../../../lib/APIErrorHandler';
-import { auth } from '../../../lib/authenticate';
+import { auth } from '../../../lib/MiscAuth';
 import * as AuthToken from '../../../lib/mysql/AuthToken';
 import status from '../../../lib/types/Response';
 import ResponseError from '../../../lib/types/ResponseError';

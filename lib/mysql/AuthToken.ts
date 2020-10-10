@@ -1,7 +1,7 @@
 // Manage Auth Tokens
 import { assert } from 'console';
 import { ResultSetHeader } from 'mysql2';
-import { GenerateJWToken } from '../authenticate';
+import { GenerateJWToken } from '../MiscAuth';
 import db from './db';
 
 /**

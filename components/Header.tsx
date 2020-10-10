@@ -3,16 +3,16 @@ import Link from 'next/link';
 import { useContext, useEffect } from 'react';
 // import {useRouter} from 'next/router';
 import { Nav, Navbar } from 'react-bootstrap';
-import UserContext from '../lib/contexts/user';
+import UserContext from '../lib/contexts/UserContext';
 export interface HeaderProps {
     title: string;
     activeKey?: 'home' | 'login' | 'dashboard' | string;
 }
 
 export default function Header(props: HeaderProps) {
-    const [token, setToken] = useContext(UserContext);
+    const [userData, setUserData] = useContext(UserContext);
     useEffect(() => {
-        console.log(token);
+        // console.log(userData);
     });
     return (
         <>

@@ -25,6 +25,7 @@ export interface authResult {
  */
 export async function auth(req: NextApiRequest): Promise<authResult> {
     const { atoken } = req.cookies;
+    if (!atoken) throw new ResponseError('No authtoken', 403);
     // const authHeader = req.headers.authorization;
     // const atoken = authHeader?.split(' ')[1];
     // do something with atoken
