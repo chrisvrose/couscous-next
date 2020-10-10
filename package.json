@@ -7,6 +7,12 @@
         "build": "next build",
         "start": "next start"
     },
+    "prettier": {
+        "tabWidth": 4,
+        "arrowParens": "avoid",
+        "semi": true,
+        "singleQuote": true
+    },
     "dependencies": {
         "@types/cookie": "^0.4.0",
         "bcryptjs": "^2.4.3",
