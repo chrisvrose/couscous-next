@@ -1,12 +1,15 @@
+import Router from 'next/router';
 import {
     ChangeEvent,
     Dispatch,
     FormEvent,
     SetStateAction,
+    useContext,
     useState,
 } from 'react';
 import { Button, Col, Container, Form, Row } from 'react-bootstrap';
 import Header from '../components/Header';
+import UserContext from '../lib/contexts/UserContext';
 
 interface formData {
     email: string;
@@ -14,6 +17,7 @@ interface formData {
 }
 
 export default function Home() {
+    const { userState, dispatch: userDispatch } = useContext(UserContext);
     const [form, setForm] = useState({
         email: '',
         pwd: '',
@@ -22,13 +26,21 @@ export default function Home() {
     async function onFormSubmit(event: FormEvent) {
         event.preventDefault();
         // setPwd(event.target.)
-        const res = await fetch('/api/auth/login', {
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(form),
-            method: 'POST',
-        });
-        const resjson = await res.json();
-        console.log(resjson);
+        try {
+            const res = await fetch('/api/auth/login', {
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(form),
+                method: 'POST',
+            });
+            console.assert(res.ok, 'expected response');
+            const resjson = await res.json();
+            console.assert(resjson.ok, 'expected login ok');
+            console.log('Login>We are in ;)');
+            userDispatch({ type: 'login' });
+            Router.push('/');
+        } catch (e) {
+            console.error(e);
+        }
     }
 
     async function onFormChange(event: ChangeEvent<HTMLInputElement>) {

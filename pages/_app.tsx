@@ -1,29 +1,36 @@
 import { AppProps } from 'next/app';
-import { useEffect, useState } from 'react';
-import UserContext from '../lib/contexts/UserContext';
+import { useEffect, useMemo, useReducer } from 'react';
+import UserContext, {
+    initialState as userInitialState,
+    stateReducer as userStateReducer,
+} from '../lib/contexts/UserContext';
 import '../styles/globals.scss';
 
 function MyApp({ Component, pageProps }: AppProps) {
-    const [userState, setUserState] = useState(() => {
-        return {
-            isLoggedIn: false,
-        };
-    });
+    const [userState, dispatch] = useReducer(
+        userStateReducer,
+        userInitialState
+    );
+
+    //memoize the values into a single object
+    const providerValue = useMemo(() => ({ userState, dispatch }), [
+        userState,
+        dispatch,
+    ]);
 
     useEffect(() => {
         fetch('/api/authtest', {
             method: 'POST',
         })
             .then(e => {
-                // console.log(e);
                 if (e.ok && e.status === 200) {
-                    setUserState({ ...userState, isLoggedIn: true });
+                    dispatch({ type: 'login' });
                 } else {
                     if (e.status === 403) {
-                        setUserState({ ...userState, isLoggedIn: false });
+                        dispatch({ type: 'login' });
                     } else {
                         console.error('E>Not normal response', e);
-                        setUserState({ ...userState, isLoggedIn: false });
+                        dispatch({ type: 'logout' });
                     }
                 }
             })
@@ -33,7 +40,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     }, []);
 
     return (
-        <UserContext.Provider value={[userState, setUserState]}>
+        <UserContext.Provider value={providerValue}>
             <Component {...pageProps} />
         </UserContext.Provider>
     );
