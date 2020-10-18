@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion, Badge, Button, Card } from 'react-bootstrap';
+import { Accordion, Alert, Badge, Button, Card } from 'react-bootstrap';
 import { ShardInfo } from '../lib/ShardInfo';
 
 export interface ShardAccordionProps {
@@ -7,6 +7,25 @@ export interface ShardAccordionProps {
     doRevalidate: () => Promise<any>;
 }
 export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
+    const handleRemove = async () => {
+        const doc = { loc: shard.host };
+        try {
+            const res = await fetch('/api/deleteShard', {
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(doc),
+                method: 'POST',
+            });
+            console.assert(res.ok, 'E> Could not delete shard');
+            const resjson: { ok: boolean; shard?: any } = await res.json();
+            if (resjson.ok) {
+                doRevalidate();
+            } else {
+                throw String('Error');
+            }
+        } catch (e) {
+            console.log('E> Could not delete shard');
+        }
+    };
     return (
         <Card key={shard.host}>
             <Accordion.Toggle
@@ -26,9 +45,17 @@ export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
                         <Badge variant="warning">OFF</Badge>
                     )}
                     <br />
+                    {shard.draining ? (
+                        <Alert variant="danger" className="spacer-top-margin">
+                            Draining
+                        </Alert>
+                    ) : (
+                        <></>
+                    )}
                     <Button
                         variant="outline-warning"
                         className="spacer-top-margin"
+                        onClick={handleRemove}
                     >
                         Remove
                     </Button>

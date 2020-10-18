@@ -6,7 +6,7 @@ import { Nav, Navbar } from 'react-bootstrap';
 import UserContext, { UserMemo } from '../lib/contexts/UserContext';
 export interface HeaderProps {
     title: string;
-    activeKey?: 'home' | 'login' | 'dashboard' | string;
+    activeKey?: 'home' | 'login' | 'dashboard' | 'userpage' | string;
 }
 
 const handleLogin = ({ userState, dispatch }: UserMemo) => (
@@ -21,15 +21,19 @@ const handleLogin = ({ userState, dispatch }: UserMemo) => (
         })
         .catch(e => {
             // we were never logged in to begin with :)
-            if (e?.status === 403) {
-                dispatch({ type: 'logout' });
+            if (e?.status !== 403) {
+                console.warn(
+                    'E',
+                    'Arcane Stuff happening, could not even try to logout'
+                );
             }
-            console.error('E>Could not logout', e);
+
+            dispatch({ type: 'logout' });
         });
 };
 
 const loginState = (userMemo: UserMemo, activeKey?: string) => {
-    console.log('Debug', userMemo.userState.isLoggedIn);
+    // console.log('Debug', userMemo.userState.isLoggedIn);
     if (!userMemo.userState.isLoggedIn)
         return (
             <Nav activeKey={activeKey}>

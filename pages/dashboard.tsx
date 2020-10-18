@@ -12,8 +12,7 @@ export default function Dashboard() {
             <Header title="Dashboard" activeKey="dashboard" />
             <Container fluid="md">
                 <Row>
-                    <Col md={4}>This is a column!</Col>
-                    <Col md={6}>
+                    <Col md={{ span: 6, offset: 3 }}>
                         <ShardMenu />
                     </Col>
                 </Row>

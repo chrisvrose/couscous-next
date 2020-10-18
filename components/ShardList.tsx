@@ -14,7 +14,7 @@ export default function PrintShards() {
         fetcher,
         {
             revalidateOnFocus: true,
-            refreshInterval: 5,
+            refreshInterval: 100,
         }
     ) as responseInterface<GetShardsResponse, { status: number }>;
     const doRevalidate = () => mutate(undefined, true);
