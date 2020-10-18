@@ -1,6 +1,6 @@
 import React from 'react';
 // import React from 'react';
-import { Accordion } from 'react-bootstrap';
+import { Accordion, Alert } from 'react-bootstrap';
 import useSWR, { responseInterface } from 'swr';
 import { fetcher } from '../lib/fetcher';
 import { GetShardsResponse } from '../lib/ShardInfo';
@@ -9,12 +9,34 @@ import ShardButtons from './ShardButtons';
 
 export default function PrintShards() {
     // const { ok, shards, statusCode } = props;
-    const { data, error, revalidate } = useSWR('/api/getShards', fetcher, {
-        revalidateOnFocus: true,
-        refreshInterval: 5,
-    }) as responseInterface<GetShardsResponse, { status: number }>;
+    const { data, error, revalidate, mutate } = useSWR(
+        '/api/getShards',
+        fetcher,
+        {
+            revalidateOnFocus: true,
+            refreshInterval: 5,
+        }
+    ) as responseInterface<GetShardsResponse, { status: number }>;
+    const doRevalidate = () => mutate(undefined, true);
     if (error) {
-        return <h2>No permission!</h2>;
+        if (error.status === 403)
+            return (
+                <>
+                    <h2>No permission</h2>
+                    <Alert variant="warning">
+                        We did not have sufficient permissions
+                    </Alert>
+                </>
+            );
+        else
+            return (
+                <>
+                    <h2>Error fetching data</h2>
+                    <Alert variant="warning">
+                        We did not have sufficient permissions
+                    </Alert>
+                </>
+            );
     }
     if (!data) {
         return <h2>Loading...</h2>;
@@ -30,14 +52,14 @@ export default function PrintShards() {
                                 <Shard
                                     key={i}
                                     shard={e}
-                                    revalidate={revalidate}
+                                    doRevalidate={doRevalidate}
                                 ></Shard>
                             );
                         })}
                     </Accordion>
                     <ShardButtons
                         className="full-width spacer-top-margin"
-                        revalidate={revalidate}
+                        doRevalidate={doRevalidate}
                     />
                 </>
             );
@@ -47,7 +69,7 @@ export default function PrintShards() {
                     <h2>No shards</h2>
                     <ShardButtons
                         className="full-width spacer-top-margin"
-                        revalidate={revalidate}
+                        doRevalidate={doRevalidate}
                     />
                 </>
             );

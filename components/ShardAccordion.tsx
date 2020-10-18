@@ -4,9 +4,9 @@ import { ShardInfo } from '../lib/ShardInfo';
 
 export interface ShardAccordionProps {
     shard: ShardInfo;
-    revalidate: () => Promise<boolean>;
+    doRevalidate: () => Promise<any>;
 }
-export default function Shard({ shard, revalidate }: ShardAccordionProps) {
+export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
     return (
         <Card key={shard.host}>
             <Accordion.Toggle

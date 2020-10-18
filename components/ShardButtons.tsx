@@ -4,7 +4,7 @@ import UserContext from '../lib/contexts/UserContext';
 
 export interface ShardButtonsProps {
     className?: string;
-    revalidate: () => Promise<boolean>;
+    doRevalidate: () => Promise<any>;
 }
 
 export default function ShardButtons(props: ShardButtonsProps) {
@@ -21,7 +21,6 @@ export default function ShardButtons(props: ShardButtonsProps) {
         setShow(true);
     };
     const handleSubmit = async () => {
-        console.log('I', 'Submit');
         try {
             const res = await fetch('/api/addShard', {
                 headers: { 'Content-Type': 'application/json' },
@@ -32,7 +31,7 @@ export default function ShardButtons(props: ShardButtonsProps) {
             const resjson: { ok: boolean; shard?: any } = await res.json();
             if (resjson.ok) {
                 setSubmit(true);
-                await props.revalidate();
+                await props.doRevalidate();
             } else {
                 throw String('Error');
             }

@@ -52,7 +52,7 @@ export default function Header(props: HeaderProps) {
     const userMemo = useContext(UserContext);
     useEffect(() => {
         console.log(userMemo.userState);
-    });
+    }, []);
     return (
         <>
             <Head>
