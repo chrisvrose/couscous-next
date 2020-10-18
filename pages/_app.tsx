@@ -27,7 +27,7 @@ function MyApp({ Component, pageProps }: AppProps) {
                     dispatch({ type: 'login' });
                 } else {
                     if (e.status === 403) {
-                        dispatch({ type: 'login' });
+                        dispatch({ type: 'logout' });
                     } else {
                         console.error('E>Not normal response', e);
                         dispatch({ type: 'logout' });

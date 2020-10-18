@@ -3,10 +3,12 @@
 import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
 import APIErrorHandler from '../../lib/APIErrorHandler';
+import { auth } from '../../lib/MiscAuth';
 import { mongos } from '../../lib/mongo/database';
 import status from '../../lib/types/Response';
 
 async function getShards(req: NextApiRequest, res: NextApiResponse<status>) {
+    await auth(req);
     await mongos.connect();
     const db = mongos.db('admin');
     const resp = await db.command({ listShards: 1 });

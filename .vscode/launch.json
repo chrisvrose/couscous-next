@@ -9,7 +9,10 @@
             "port": 4567,
             "request": "attach",
             "skipFiles": ["<node_internals>/**"],
-            "type": "pwa-node"
+            "type": "node",
+            "protocol": "inspector",
+            "localRoot": "${workspaceFolder}",
+            "remoteRoot": "/usr/share/app"
         }
     ]
 }

@@ -29,6 +29,7 @@ const handleLogin = ({ userState, dispatch }: UserMemo) => (
 };
 
 const loginState = (userMemo: UserMemo, activeKey?: string) => {
+    console.log('Debug', userMemo.userState.isLoggedIn);
     if (!userMemo.userState.isLoggedIn)
         return (
             <Nav activeKey={activeKey}>
@@ -75,9 +76,15 @@ export default function Header(props: HeaderProps) {
                         <Link href="/" passHref>
                             <Nav.Link eventKey="home">Home</Nav.Link>
                         </Link>
-                        <Link href="/dashboard" passHref>
-                            <Nav.Link eventKey="dashboard">Dashboard</Nav.Link>
-                        </Link>
+                        {userMemo.userState.isLoggedIn ? (
+                            <Link href="/dashboard" passHref>
+                                <Nav.Link eventKey="dashboard">
+                                    Dashboard
+                                </Nav.Link>
+                            </Link>
+                        ) : (
+                            <></>
+                        )}
                     </Nav>
                     {loginState(userMemo, props.activeKey)}
                 </Navbar.Collapse>
