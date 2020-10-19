@@ -60,6 +60,17 @@ export async function isAdmin(auth: authResult) {
     return res.role;
 }
 
+export async function assertAdmin(auth: authResult) {
+    const res = await AuthToken.isAdmin(auth.atoken);
+    if (!res) {
+        throw new ResponseError('Could not get role', 500);
+    }
+    if (!res.role) {
+        throw new ResponseError('Not administrator', 403);
+    }
+    return res.role;
+}
+
 /**
  * Generate a JWT Token
  * @param payload payload to sign

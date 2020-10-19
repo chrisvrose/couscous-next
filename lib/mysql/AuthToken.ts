@@ -82,10 +82,9 @@ export async function isAdmin(atoken: string) {
             [atoken]
         );
         const result = <RowDataPacket[]>rows;
-        console.log(result);
         return { uid: result[0].uid, role: result[0].role > 0 };
     } catch (e) {
-        console.error('e', e);
+        //this 'e' is to be able to inspect it while debugging
         return null;
     }
 }
