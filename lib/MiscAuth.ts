@@ -26,17 +26,15 @@ export interface authResult {
 export async function auth(req: NextApiRequest): Promise<authResult> {
     const { atoken } = req.cookies;
     if (!atoken) throw new ResponseError('No authtoken', 403);
-    // const authHeader = req.headers.authorization;
-    // const atoken = authHeader?.split(' ')[1];
+
     // do something with atoken
-    // const contents = jwt.verify(atoken,process.env.ACCESS_TOKEN_SECRET)
     return new Promise<authResult>((res, rej) => {
         jwt.verify(atoken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
             if (err) {
                 rej(err);
                 return;
             }
-            const { uid } = <{ uid: string }>user;
+            const { uid } = user as { uid: string };
             const uidnumber = parseInt(uid);
             AuthToken.getExists(uidnumber, atoken).then(
                 isLoggedIn => {
@@ -52,6 +50,14 @@ export async function auth(req: NextApiRequest): Promise<authResult> {
             );
         });
     });
+}
+
+export async function isAdmin(auth: authResult) {
+    const res = await AuthToken.isAdmin(auth.atoken);
+    if (!res) {
+        throw new ResponseError('Could not get role', 500);
+    }
+    return res.role;
 }
 
 /**

@@ -1,6 +1,6 @@
 // Manage Auth Tokens
 import { assert } from 'console';
-import { ResultSetHeader } from 'mysql2';
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { GenerateJWToken } from '../MiscAuth';
 import db from './db';
 
@@ -69,5 +69,23 @@ export async function removeAll(uid: number) {
         return result?.affectedRows >= 0;
     } catch (e) {
         return false;
+    }
+}
+
+export async function isAdmin(atoken: string) {
+    try {
+        const [
+            rows,
+            field,
+        ] = await db.execute(
+            'select uid,role from atokens natural join users where atoken=?;',
+            [atoken]
+        );
+        const result = <RowDataPacket[]>rows;
+        console.log(result);
+        return { uid: result[0].uid, role: result[0].role > 0 };
+    } catch (e) {
+        console.error('e', e);
+        return null;
     }
 }
