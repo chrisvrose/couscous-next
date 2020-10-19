@@ -1,10 +1,10 @@
 import React from 'react';
 import { Accordion, Alert, Badge, Button, Card } from 'react-bootstrap';
-import { ShardInfo } from '../lib/ShardInfo';
+import { GetShardsResponse, ShardInfo } from '../lib/ShardInfo';
 
 export interface ShardAccordionProps {
     shard: ShardInfo;
-    doRevalidate: () => Promise<any>;
+    doRevalidate: () => Promise<GetShardsResponse>;
 }
 export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
     const handleRemove = async () => {

@@ -1,14 +1,15 @@
 import React, { useContext, useState } from 'react';
 import { Alert, Button, ButtonGroup, Form, Modal } from 'react-bootstrap';
 import UserContext from '../lib/contexts/UserContext';
+import { GetShardsResponse } from '../lib/ShardInfo';
 
 export interface ShardButtonsProps {
     className?: string;
-    doRevalidate: () => Promise<any>;
+    doRevalidate: () => Promise<GetShardsResponse>;
 }
 
 export default function ShardButtons(props: ShardButtonsProps) {
-    const { userState, dispatch: userDispatch } = useContext(UserContext);
+    const { userState } = useContext(UserContext);
 
     const [show, setShow] = useState(false);
     const [formData, setFormData] = useState({ loc: '' });
