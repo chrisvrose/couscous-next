@@ -89,3 +89,32 @@ export async function getFromBody({ body }: NextApiRequest): Promise<User> {
         throw new ResponseError(e.message ?? 'Malformed request', 400);
     }
 }
+
+export async function updatePwd(uid: number, newPwd: string) {
+    try {
+        const salt = await bcrypt.genSalt();
+        const hashedPwd = await bcrypt.hash(newPwd, salt);
+        const [rows] = await db.execute('update users set pwd=? where uid=?', [
+            hashedPwd,
+            uid,
+        ]);
+        const result = rows as ResultSetHeader;
+        return result.affectedRows === 1;
+    } catch (e) {
+        throw new ResponseError('Could not add');
+    }
+}
+
+export async function getUser(uid: number) {
+    try {
+        const [
+            rows,
+        ] = await db.execute('select uid,name,email from users where uid=?', [
+            uid,
+        ]);
+        const result = rows as RowDataPacket[];
+        return rows[0];
+    } catch (e) {
+        throw new ResponseError('Could not fetch from database');
+    }
+}
