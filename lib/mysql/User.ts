@@ -30,11 +30,11 @@ export async function authPass(
     pwd: string
 ): Promise<authPassResult> {
     try {
-        const rf = await db.execute(
+        const [rows] = await db.execute<RowDataPacket[]>(
             'select uid,pwd,role from users where email=?;',
             [email]
         );
-        const rows = rf[0] as RowDataPacket[];
+        // const rows = rf[0] as RowDataPacket[];
         assert(rows.length === 1, 'could not get auth');
         const expectedPwd: string = rows[0].pwd;
         // assert(rows === 1, 'Need to have exactly 1 result back');
@@ -56,15 +56,12 @@ export async function add({ name, email, pwd, role }: User): Promise<UserID> {
     try {
         const salt = await bcrypt.genSalt();
         const hashedpwd = await bcrypt.hash(pwd, salt);
-        const [
-            rows,
-            fields,
-        ] = await db.execute(
+        const [rows] = await db.execute<ResultSetHeader>(
             'insert into users(name,email,pwd,role) values(?,?,?,?)',
             [name, email, hashedpwd, role]
         );
-        const result = <ResultSetHeader>rows;
-        return { uid: result.insertId };
+
+        return { uid: rows.insertId };
     } catch (e) {
         // return null;
         throw new ResponseError('Could not add');
@@ -94,12 +91,11 @@ export async function updatePwd(uid: number, newPwd: string) {
     try {
         const salt = await bcrypt.genSalt();
         const hashedPwd = await bcrypt.hash(newPwd, salt);
-        const [rows] = await db.execute('update users set pwd=? where uid=?', [
-            hashedPwd,
-            uid,
-        ]);
-        const result = rows as ResultSetHeader;
-        return result.affectedRows === 1;
+        const [rows] = await db.execute<ResultSetHeader>(
+            'update users set pwd=? where uid=?',
+            [hashedPwd, uid]
+        );
+        return rows.affectedRows === 1;
     } catch (e) {
         throw new ResponseError('Could not add');
     }
@@ -107,12 +103,10 @@ export async function updatePwd(uid: number, newPwd: string) {
 
 export async function getUser(uid: number) {
     try {
-        const [
-            rows,
-        ] = await db.execute('select uid,name,email from users where uid=?', [
-            uid,
-        ]);
-        const result = rows as RowDataPacket[];
+        const [rows] = await db.execute<RowDataPacket[]>(
+            'select uid,name,email from users where uid=?',
+            [uid]
+        );
         return rows[0];
     } catch (e) {
         throw new ResponseError('Could not fetch from database');

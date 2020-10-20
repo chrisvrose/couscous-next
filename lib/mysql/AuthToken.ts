@@ -12,8 +12,9 @@ import db from './db';
 export async function add(uid: number) {
     try {
         const atoken = await GenerateJWToken({ uid }); // generateAuthToken({uid});
-        const [rows, field] = <[ResultSetHeader, undefined]>(
-            await db.execute('INSERT INTO atokens values(?,?);', [uid, atoken])
+        const [rows] = await db.execute<ResultSetHeader>(
+            'INSERT INTO atokens values(?,?);',
+            [uid, atoken]
         );
         assert(rows.affectedRows === 1, 'Internal atoken state error');
         return atoken;
@@ -29,10 +30,7 @@ export async function add(uid: number) {
  */
 export async function getExists(uid: number, atoken: string) {
     try {
-        const [
-            rows,
-            field,
-        ] = await db.execute(
+        const [rows] = await db.execute<RowDataPacket[]>(
             'SELECT COUNT(*) as count from atokens where uid=? and atoken=?;',
             [uid, atoken]
         );
@@ -45,15 +43,11 @@ export async function getExists(uid: number, atoken: string) {
 
 export async function remove(uid: number, atoken: string) {
     try {
-        const [
-            rows,
-            field,
-        ] = await db.execute('DELETE FROM atokens WHERE uid=? and atoken=?', [
-            uid,
-            atoken,
-        ]);
-        const result = <ResultSetHeader>rows;
-        return result?.affectedRows >= 0;
+        const [rows] = await db.execute<ResultSetHeader>(
+            'DELETE FROM atokens WHERE uid=? and atoken=?',
+            [uid, atoken]
+        );
+        return rows.affectedRows >= 0;
     } catch (e) {
         return false;
     }
@@ -61,12 +55,11 @@ export async function remove(uid: number, atoken: string) {
 
 export async function removeAll(uid: number) {
     try {
-        const [
-            rows,
-            field,
-        ] = await db.execute('DELETE FROM atokens WHERE uid=?', [uid]);
-        const result = <ResultSetHeader>rows;
-        return result?.affectedRows >= 0;
+        const [rows] = await db.execute<ResultSetHeader>(
+            'DELETE FROM atokens WHERE uid=?',
+            [uid]
+        );
+        return rows.affectedRows >= 0;
     } catch (e) {
         return false;
     }
@@ -74,15 +67,11 @@ export async function removeAll(uid: number) {
 
 export async function isAdmin(atoken: string) {
     try {
-        const [
-            rows,
-            field,
-        ] = await db.execute(
+        const [rows] = await db.execute<RowDataPacket[]>(
             'select uid,role from atokens natural join users where atoken=?;',
             [atoken]
         );
-        const result = <RowDataPacket[]>rows;
-        return { uid: result[0].uid, role: result[0].role > 0 };
+        return { uid: rows[0].uid, role: rows[0].role > 0 };
     } catch (e) {
         //this 'e' is to be able to inspect it while debugging
         return null;
