@@ -45,6 +45,10 @@ const loginState = (userMemo: UserMemo, activeKey?: string) => {
     else
         return (
             <Nav activeKey={activeKey}>
+                <Link href="/user" passHref>
+                    <Nav.Link eventKey="userpage">User</Nav.Link>
+                </Link>
+
                 <Nav.Link eventKey="logout" onClick={handleLogin(userMemo)}>
                     Logout
                 </Nav.Link>

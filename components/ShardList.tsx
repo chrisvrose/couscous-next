@@ -1,7 +1,7 @@
 import React from 'react';
 // import React from 'react';
 import { Accordion, Alert } from 'react-bootstrap';
-import useSWR, { responseInterface } from 'swr';
+import useSWR from 'swr';
 import { fetcher } from '../lib/fetcher';
 import { GetShardsResponse } from '../lib/ShardInfo';
 import Shard from './ShardAccordion';
@@ -9,14 +9,13 @@ import ShardButtons from './ShardButtons';
 
 export default function PrintShards() {
     // const { ok, shards, statusCode } = props;
-    const { data, error, revalidate, mutate } = useSWR(
-        '/api/getShards',
-        fetcher,
-        {
-            revalidateOnFocus: true,
-            refreshInterval: 100,
-        }
-    ) as responseInterface<GetShardsResponse, { status: number }>;
+    const { data, error, revalidate, mutate } = useSWR<
+        GetShardsResponse,
+        { status: number }
+    >('/api/getShards', fetcher, {
+        revalidateOnFocus: true,
+        refreshInterval: 100,
+    }); //as responseInterface<GetShardsResponse, { status: number }>;
     const doRevalidate = () => mutate(undefined, true);
     if (error) {
         if (error.status === 403)

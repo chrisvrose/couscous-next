@@ -6,7 +6,7 @@ export default function UserSettings() {
     const handleForm = (e: FormEvent<HTMLElement>) => {};
     return (
         <>
-            <h2>User Config</h2>
+            <h2>Change Password</h2>
             <Form onSubmit={handleForm}>
                 <Form.Group>
                     <Form.Control
