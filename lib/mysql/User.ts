@@ -41,7 +41,7 @@ export async function authPass(
         assert(rows.length === 1, 'could not get auth');
         const expectedPwd: string = rows[0].pwd;
         // assert(rows === 1, 'Need to have exactly 1 result back');
-        if (bcrypt.compare(pwd, expectedPwd)) {
+        if (await bcrypt.compare(pwd, expectedPwd)) {
             return { uid: <number>rows[0].uid, role: <boolean>rows[0].role };
         } else {
             return null;
