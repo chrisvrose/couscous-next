@@ -63,7 +63,8 @@ export default function UserSettings() {
                     onClose={() => setResponseState(null)}
                     className="spacer-top-margin"
                 >
-                    Change Successful
+                    <Alert.Heading>Change Successful</Alert.Heading>
+                    Changed Password successfully!
                 </Alert>
                 <Alert
                     variant="danger"
@@ -72,7 +73,9 @@ export default function UserSettings() {
                     onClose={() => setResponseState(null)}
                     className="spacer-top-margin"
                 >
-                    Change Failed
+                    <Alert.Heading>Change Failed</Alert.Heading>
+                    Could not change password! Either there was a system error
+                    or you do not have the necessary permissions to do so!
                 </Alert>
             </Form>
         </>

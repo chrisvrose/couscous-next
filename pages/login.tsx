@@ -32,9 +32,17 @@ export default function Home() {
                 body: JSON.stringify(form),
                 method: 'POST',
             });
-            console.assert(res.ok, 'expected response');
+            if (!res.ok) {
+                throw 'expected response';
+            }
+
             const resjson = await res.json();
-            console.assert(resjson.ok, 'expected login ok');
+
+            if (!resjson.ok) {
+                throw 'expected response to be ok';
+            }
+            //console.assert(resjson.ok, 'expected login ok');
+
             console.log('Login>We are in ;)');
             userDispatch({ type: 'login' });
             Router.push('/');
@@ -54,9 +62,14 @@ export default function Home() {
             <Header title="Login" activeKey="login" />
             <Container fluid="md">
                 <Row>
-                    <Col md={4}>This is a column!</Col>
-                    <Col md={6}>
-                        <Form onSubmit={onFormSubmit}>
+                    <Col md={{ span: 6, offset: 3 }}>
+                        <Container fluid style={{ textAlign: 'center' }}>
+                            <h2>Login Portal</h2>
+                        </Container>
+                        <Form
+                            onSubmit={onFormSubmit}
+                            className="spacer-top-margin"
+                        >
                             <Form.Group controlId="formBasicEmail">
                                 <Form.Label>Email address</Form.Label>
                                 <Form.Control
