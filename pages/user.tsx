@@ -34,8 +34,9 @@ export function UserInfo() {
     } else {
         return (
             <Jumbotron>
-                <h2>{data.name}</h2>
-                Email - {data.email}
+                <h2>Hello {data.name}!</h2>
+                <p>{data.email}</p>
+                <p>{data.role ? 'Admin' : 'User'}</p>
             </Jumbotron>
         );
     }

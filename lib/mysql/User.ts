@@ -13,11 +13,11 @@ export interface authPassResult {
 export interface UserDetails {
     name: string;
     email: string;
+    role: boolean;
 }
 
 export interface User extends UserDetails {
     pwd: string;
-    role: boolean;
 }
 export interface UserID {
     uid: number;
@@ -107,7 +107,7 @@ export async function updatePwd(uid: number, newPwd: string) {
 export async function getUser(uid: number) {
     try {
         const [rows] = await db.execute<RowDataPacket[]>(
-            'select name,email from users where uid=?',
+            'select name,email,role from users where uid=?',
             [uid]
         );
         return rows[0];
