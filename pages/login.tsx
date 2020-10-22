@@ -1,13 +1,6 @@
 import Router from 'next/router';
-import {
-    ChangeEvent,
-    Dispatch,
-    FormEvent,
-    SetStateAction,
-    useContext,
-    useState,
-} from 'react';
-import { Button, Col, Container, Form, Row } from 'react-bootstrap';
+import { ChangeEvent, FormEvent, useContext, useState } from 'react';
+import { Alert, Button, Col, Container, Form, Row } from 'react-bootstrap';
 import Header from '../components/Header';
 import UserContext from '../lib/contexts/UserContext';
 
@@ -18,10 +11,11 @@ interface formData {
 
 export default function Home() {
     const { userState, dispatch: userDispatch } = useContext(UserContext);
-    const [form, setForm] = useState({
+    const [form, setForm] = useState<formData>({
         email: '',
         pwd: '',
-    }) as [formData, Dispatch<SetStateAction<formData>>];
+    });
+    const [errorState, setErrorState] = useState<boolean>(false);
 
     async function onFormSubmit(event: FormEvent) {
         event.preventDefault();
@@ -47,6 +41,7 @@ export default function Home() {
             userDispatch({ type: 'login' });
             Router.push('/');
         } catch (e) {
+            setErrorState(true);
             console.error(e);
         }
     }
@@ -97,6 +92,17 @@ export default function Home() {
                                 Submit
                             </Button>
                         </Form>
+                        <Alert
+                            variant="danger"
+                            show={errorState}
+                            dismissible
+                            onClose={() => setErrorState(false)}
+                            className="spacer-top-margin"
+                        >
+                            <Alert.Heading>Login Failed</Alert.Heading>
+                            Please check if you are online and have entered the
+                            correct credentials.
+                        </Alert>
                     </Col>
                 </Row>
             </Container>
