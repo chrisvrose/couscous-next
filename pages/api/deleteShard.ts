@@ -6,20 +6,24 @@
 
 import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
+import APIErrorHandler from '../../lib/APIErrorHandler';
+import { assertAdmin, auth } from '../../lib/MiscAuth';
 import { mongos } from '../../lib/mongo/database';
 import status from '../../lib/types/Response';
 
-export default async (req: NextApiRequest, res: NextApiResponse<status>) => {
+async function deleteShard(req: NextApiRequest, res: NextApiResponse<status>) {
+    const getAuth = await auth(req);
+    const admin = assertAdmin(getAuth);
+
     const location = req.body?.loc;
-    try {
-        assert(location, 'expecting loc');
 
-        await mongos.connect();
-        const db = mongos.db('admin');
-        const resp = await db.command({ removeShard: location });
+    assert(location, 'expecting loc');
 
-        res.status(200).json({ ok: true, shard: resp });
-    } catch (err) {
-        res.status(500).json({ ok: false, error: err.message ?? 'Error' });
-    }
-};
+    await mongos.connect();
+    const db = mongos.db('admin');
+    const resp = await db.command({ removeShard: location });
+
+    res.status(200).json({ ok: true, shard: resp });
+}
+
+export default APIErrorHandler(deleteShard);

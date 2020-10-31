@@ -7,10 +7,14 @@
 import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
 import APIErrorHandler from '../../lib/APIErrorHandler';
+import { assertAdmin, auth } from '../../lib/MiscAuth';
 import { mongos } from '../../lib/mongo/database';
 import status from '../../lib/types/Response';
 
 async function addShard(req: NextApiRequest, res: NextApiResponse<status>) {
+    const getAuth = await auth(req);
+    const admin = assertAdmin(getAuth);
+
     const location = req.body?.loc;
     assert(location, 'expecting loc');
 
