@@ -17,6 +17,8 @@ async function addShard(req: NextApiRequest, res: NextApiResponse<status>) {
 
     const location = req.body?.loc;
     assert(location, 'expecting loc');
+    //now get admin priviledges
+    await admin;
 
     await mongos.connect();
     const db = mongos.db('admin');

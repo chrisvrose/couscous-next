@@ -3,7 +3,6 @@ version: "3.4"
 services:
   web:
     image: docker.pkg.github.com/chrisvrose/couscous-next
-    restart: always
     ports:
       - 8081:3000
     environment:
@@ -22,7 +21,6 @@ services:
   mysqldb:
     image: mysql
     hostname: mysqldb
-    restart: always
     ports:
       - 3306:3306
     command: --default-authentication-plugin=mysql_native_password
@@ -57,7 +55,6 @@ services:
     container_name: mongosdb
     hostname: mongosdb
     image: mongo
-    restart: always
     entrypoint: mongos --configdb mongocfg/mongocfg:27017 --port 27017 --bind_ip_all
     depends_on:
       - mongocfg

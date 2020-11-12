@@ -16,8 +16,10 @@ async function deleteShard(req: NextApiRequest, res: NextApiResponse<status>) {
     const admin = assertAdmin(getAuth);
 
     const location = req.body?.loc;
-
     assert(location, 'expecting loc');
+
+    //check if admin
+    await admin;
 
     await mongos.connect();
     const db = mongos.db('admin');
