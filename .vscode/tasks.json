@@ -1,0 +1,22 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Wipe and restart only db",
+            "type": "shell",
+            "command": "docker-compose down -v && docker-compose up -d mysqldb"
+        },
+        {
+            "label": "Wipe and restart",
+            "type": "shell",
+            "command": "docker-compose down -v && docker-compose up -d"
+        },
+        {
+            "label": "Restart all",
+            "type": "shell",
+            "command": "docker-compose down && docker-compose up -d"
+        }
+    ]
+}

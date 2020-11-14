@@ -5,8 +5,13 @@ import { GetShardsResponse, ShardInfo } from '../lib/ShardInfo';
 export interface ShardAccordionProps {
     shard: ShardInfo;
     doRevalidate: () => Promise<GetShardsResponse>;
+    isDisabled?: boolean;
 }
-export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
+export default function Shard({
+    shard,
+    isDisabled,
+    doRevalidate,
+}: ShardAccordionProps) {
     const handleRemove = async () => {
         const doc = { loc: shard.host };
         try {
@@ -55,6 +60,7 @@ export default function Shard({ shard, doRevalidate }: ShardAccordionProps) {
                     <Button
                         variant="outline-warning"
                         className="spacer-top-margin"
+                        disabled={isDisabled === true}
                         onClick={handleRemove}
                     >
                         Remove

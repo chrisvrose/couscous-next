@@ -52,6 +52,7 @@ export default function PrintShards() {
                                     key={i}
                                     shard={e}
                                     doRevalidate={doRevalidate}
+                                    isDisabled={shards.length === 1}
                                 ></Shard>
                             );
                         })}
