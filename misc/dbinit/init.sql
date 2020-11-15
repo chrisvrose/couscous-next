@@ -53,6 +53,7 @@ CREATE TABLE file(
 );
 
 CREATE TABLE usersession(
+    sessionid int not null auto_increment PRIMARY KEY,
     uid integer not null,
     operation integer not null,
     fid smallint not null,

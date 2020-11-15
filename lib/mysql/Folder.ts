@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { RowDataPacket } from 'mysql2';
 import { NextApiRequest } from 'next';
-import path from 'path';
+import * as FileUtils from '../FileUtils';
 import ResponseError from '../types/ResponseError';
 import db from './db';
 
@@ -19,35 +19,11 @@ export async function getFromBody({ body }: NextApiRequest) {
     }
 }
 
-export async function toFlags(flags) {
-    flags = flags & 3;
-    if (flags === 0) return 'r';
-    if (flags === 1) return 'w';
-    return 'r+';
-}
-
 /**
- * Clean folder path, and attach to root
- * @param pathStr path
+ * opens directory, dummy
  */
-export function toRoot(pathStr: string) {
-    return path.join('/', path.normalize(pathStr));
-}
-
-/**
- * Split path into array of folders, cleaning the folder string requested
- * @param pathstr Path string
- */
-export async function splitPath(pathstr: string) {
-    const currentPath = toRoot(pathstr);
-    return currentPath.split('/').filter(e => e);
-}
-
 export async function openDir(path: string) {
-    const result = await db.execute<RowDataPacket[]>(
-        'SELECT * from file,employee'
-    );
-    return;
+    return 42;
 }
 
 /**
@@ -55,7 +31,7 @@ export async function openDir(path: string) {
  * @param pathstr folder location
  */
 export async function getFolderID(pathstr: string): Promise<number> {
-    const loc = await splitPath(pathstr);
+    const loc = await FileUtils.splitPath(pathstr);
     // This is asking root, don't bother
     if (loc.length === 0) {
         return null;
@@ -121,3 +97,5 @@ export async function getContents(pathstr: string): Promise<string[]> {
     console.log('result:', foid, res);
     return res.map(e => e.name) as string[];
 }
+
+// export async function
