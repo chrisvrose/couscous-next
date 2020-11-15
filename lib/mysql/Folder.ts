@@ -26,11 +26,21 @@ export async function toFlags(flags) {
     return 'r+';
 }
 
+/**
+ * Clean folder path, and attach to root
+ * @param pathStr path
+ */
+export function toRoot(pathStr: string) {
+    return path.join('/', path.normalize(pathStr));
+}
+
+/**
+ * Split path into array of folders, cleaning the folder string requested
+ * @param pathstr Path string
+ */
 export async function splitPath(pathstr: string) {
-    return path
-        .normalize(pathstr)
-        .split('/')
-        .filter(e => e);
+    const currentPath = toRoot(pathstr);
+    return currentPath.split('/').filter(e => e);
 }
 
 export async function openDir(path: string) {
@@ -40,36 +50,32 @@ export async function openDir(path: string) {
     return;
 }
 
-export async function getContents(pathstr: string) {
+/**
+ * Traverse folders and get foid of folder required
+ * @param pathstr folder location
+ */
+export async function getFolderID(pathstr: string): Promise<number> {
     const loc = await splitPath(pathstr);
-    console.log('Requesting Folder:', loc);
-    let id: number = null;
-    if (loc.length === 0 || (loc.length == 1 && loc[0] == '.')) {
-        const [res] = await db.execute<RowDataPacket[]>(
-            'select name from folder where parentfoid is null UNION select name from file where parentfoid is null;'
-        );
-        return res.map(e => e.name);
+    // This is asking root, don't bother
+    if (loc.length === 0) {
+        return null;
     } else {
-        // TODOC
+        //need to traverse
+        let id: number = null;
         let res: { name: string; foid: number }[];
+        /*
+         * iterate through all folders, ensuring they're all there and print out their foids
+         */
         for (let str of loc) {
             console.log('searching:', str);
             console.log('id:', id);
+            // null finds in sql cannot be with =, need 'is'
             if (id === null) {
                 res = (
                     await db.execute<RowDataPacket[]>(
                         'select name,foid from folder where parentfoid is null'
                     )
                 )[0] as { name: string; foid: number }[];
-
-                // console.log('response1:', res);
-                let ans = res.find(element => element.name === str)?.foid;
-                if (ans) {
-                    id = ans;
-                } else {
-                    throw new ResponseError('Could not find', 404);
-                }
-                // .map(e => e.name);
             } else {
                 res = (
                     await db.execute<RowDataPacket[]>(
@@ -77,25 +83,41 @@ export async function getContents(pathstr: string) {
                         [id]
                     )
                 )[0] as { name: string; foid: number }[];
-                // console.log(res);
-
-                let ans = res.find(element => element.name === str)?.foid;
-                if (ans) {
-                    id = ans;
-                } else {
-                    throw new ResponseError('Could not find', 404);
-                }
-                //id
             }
-
-            console.log('final foid', id);
-
-            return (
-                await db.execute<RowDataPacket[]>(
-                    'select name from folder where parentfoid=? UNION select name from file where parentfoid=?;',
-                    [id, id]
-                )
-            )[0].map(e => e.name);
+            // find if the foldername is actually there in this hierarchy
+            let ans = res.find(element => element.name === str)?.foid;
+            if (ans) {
+                id = ans;
+            } else {
+                throw new ResponseError('Could not find', 404);
+            }
         }
+        return id;
     }
+}
+
+/**
+ * Get contents of a folder path
+ * @param pathstr path string of folder
+ */
+export async function getContents(pathstr: string): Promise<string[]> {
+    let foid: number = await getFolderID(pathstr);
+
+    let res: RowDataPacket[];
+    if (foid === null) {
+        res = (
+            await db.execute<RowDataPacket[]>(
+                'select name from folder where parentfoid is null UNION select name from file where parentfoid is null;'
+            )
+        )[0];
+    } else {
+        res = (
+            await db.execute<RowDataPacket[]>(
+                'select name from folder where parentfoid=? UNION select name from file where parentfoid=?;',
+                [foid, foid]
+            )
+        )[0];
+    }
+    console.log('result:', foid, res);
+    return res.map(e => e.name) as string[];
 }
