@@ -57,7 +57,28 @@ export async function getPathOperationFromBody({ body }: NextApiRequest) {
     }
 }
 
-// TODO
+export async function getPathFdFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body.path === 'string', 'Expected path');
+        assert(typeof body.fd === 'number', 'Expected file descriptor');
+        return {
+            path: body.path,
+            fd: body.fd,
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
+// TODO implement checks
+/**
+ * Open a file, creating a fd
+ * @param pathstr Path string
+ * @param uid User id
+ * @param flags operation being done
+ * @returns new fd
+ */
 export async function open(pathstr: string, uid: number, flags: number) {
     const fid = await getFile(pathstr);
     console.log(fid);
@@ -67,4 +88,18 @@ export async function open(pathstr: string, uid: number, flags: number) {
     );
     console.log(res.insertId);
     return res.insertId;
+}
+
+/**
+ * Release a file descriptor
+ * @param pathstr Path string
+ * @param uid User id
+ * @param fd file descriptor
+ */
+export async function release(pathstr: string, uid: number, fd: number) {
+    const [res] = await db.execute<ResultSetHeader>(
+        'DELETE from usersession where uid=? and sessionid=?',
+        [uid, fd]
+    );
+    return res.affectedRows;
 }
