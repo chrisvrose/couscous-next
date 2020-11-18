@@ -1,5 +1,7 @@
 # Couscous Web
 
+Sister repository at [bapatchirag/dbd-fuse](https://github.com/bapatchirag/dbd-fuse)
+
 ## What
 
 -   This is a webserver.
@@ -36,18 +38,19 @@ Development server:
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) (or 8081 if using docker) with your browser to see the result.
 
 # Docker Compose
 
+Note: Docker tucks the web server away into `8081`
+
 ## .env config
 
-| Var                 | Desc                      |
-| ------------------- | ------------------------- |
-| MYSQL_PASSWORD      | mysql `couscous` password |
-| MYSQL_ROOT_PASSWORD | mysql `root` password     |
-| ACCESS_TOKEN_SECRET | JWT access token secret   |
-| `TBD`               | `TBD`                     |
+| Environment Variable | Description               |
+| -------------------- | ------------------------- |
+| MYSQL_PASSWORD       | mysql `couscous` password |
+| MYSQL_ROOT_PASSWORD  | mysql `root` password     |
+| ACCESS_TOKEN_SECRET  | JWT access token secret   |
 
 ## Portmap
 
