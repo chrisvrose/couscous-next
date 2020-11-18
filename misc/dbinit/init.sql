@@ -68,7 +68,7 @@ insert into usergroups(name) values("mygroup");
 -- make the admin a member of above group
 insert into groupmember values(1,1);
 -- insert root directory
-insert into folder values(1,"world",1,1,0x100644,NULL);
-insert into folder values(2,"border",1,1,0x100644,NULL);
-insert into file values(2,"hello.txt",1,1,0x100644,NULL);
-insert into file values(1,"open.txt",1,1,0x100644,1);
+insert into folder values(1,"world",1,1,420,NULL);
+insert into folder values(2,"border",1,1,420,NULL);
+insert into file values(2,"hello.txt",1,1,420,NULL);
+insert into file values(1,"open.txt",1,1,420,1);

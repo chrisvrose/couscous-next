@@ -76,26 +76,26 @@ export async function getFolderID(pathstr: string): Promise<number> {
  * Get contents of a folder path
  * @param pathstr path string of folder
  */
-export async function getContents(pathstr: string): Promise<string[]> {
+export async function getContents(pathstr: string) {
     let foid: number = await getFolderID(pathstr);
 
     let res: RowDataPacket[];
     if (foid === null) {
         res = (
             await db.execute<RowDataPacket[]>(
-                'select name from folder where parentfoid is null UNION select name from file where parentfoid is null;'
+                'select name,permissions,"folder" as type from folder where parentfoid is null UNION select name,permissions,"file" as type from file where parentfoid is null;'
             )
         )[0];
     } else {
         res = (
             await db.execute<RowDataPacket[]>(
-                'select name from folder where parentfoid=? UNION select name from file where parentfoid=?;',
+                'select name,permissions,"folder" as type from folder where parentfoid=? UNION select name,permissions,"file" as type from file where parentfoid=?;',
                 [foid, foid]
             )
         )[0];
     }
     console.log('result:', foid, res);
-    return res.map(e => e.name) as string[];
+    return res as { name: string; permissions: string; type: string }[];
 }
 
 // export async function
