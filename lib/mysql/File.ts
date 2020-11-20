@@ -7,6 +7,10 @@ import ResponseError from '../types/ResponseError';
 import db from './db';
 import * as Folder from './Folder';
 
+/**
+ * Get file id
+ * @param pathstr
+ */
 export async function getFile(pathstr: string) {
     const parentPath = FileUtils.folderPath(pathstr);
     const parentfoid = await Folder.getFolderID(parentPath);

@@ -47,6 +47,7 @@ CREATE TABLE file(
     gid integer not null,
     permissions integer not null,
     parentfoid smallint,
+    mongofileuid text,
     foreign key (uid) references users(uid),
     foreign key (gid) references usergroups(gid),
     foreign key (parentfoid) references folder(foid)
@@ -67,8 +68,9 @@ insert into users(name,email,pwd, role) values('Foo Bar', 'foo@bar.baz','$2a$10$
 insert into usergroups(name) values("mygroup");
 -- make the admin a member of above group
 insert into groupmember values(1,1);
--- insert root directory
+
+-- insert some files and folders
 insert into folder values(1,"world",1,1,420,NULL);
 insert into folder values(2,"border",1,1,420,NULL);
-insert into file values(2,"hello.txt",1,1,420,NULL);
-insert into file values(1,"open.txt",1,1,420,1);
+insert into file values(1,"open.txt" ,1,1,420,1   ,NULL);
+insert into file values(2,"hello.txt",1,1,420,NULL,NULL);

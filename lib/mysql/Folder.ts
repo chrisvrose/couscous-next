@@ -29,6 +29,7 @@ export async function openDir(path: string) {
 /**
  * Traverse folders and get foid of folder required
  * @param pathstr folder location
+ * @throws ResponseError if not found
  */
 export async function getFolderID(pathstr: string): Promise<number> {
     const loc = await FileUtils.splitPath(pathstr);
