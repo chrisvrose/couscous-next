@@ -34,8 +34,9 @@ export default function UserListPagelet() {
         );
     } else {
         return (
-            <Row md={8}>
+            <Row className="spacer-top-margin-lot" md={8}>
                 <Col md={{ span: 8, offset: 2 }}>
+                    <h3>Configure Users</h3>
                     <Accordion>
                         {data.users.map(user => (
                             <UserListComponent
