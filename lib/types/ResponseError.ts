@@ -5,7 +5,10 @@ export default class ResponseError extends Error {
      * @param message Message to send
      * @param statusCode Status code (500)
      */
-    constructor(message: string, statusCode: number = 500) {
+    constructor(
+        message: string = 'Internal database error',
+        statusCode: number = 500
+    ) {
         super(message);
         this._statusCode = statusCode;
     }

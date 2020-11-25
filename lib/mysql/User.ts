@@ -23,6 +23,9 @@ export interface UserID {
     uid: number;
 }
 
+export interface UserIDAndRole extends UserID {
+    role: 1 | 0;
+}
 /**
  * Auth against a username and password
  * @param email email address
@@ -90,6 +93,15 @@ export async function getFromBody({ body }: NextApiRequest): Promise<User> {
     }
 }
 
+export async function getUIDAndRoleFromBody({
+    body,
+}: NextApiRequest): Promise<UserIDAndRole> {
+    return {
+        uid: parseInt(body.uid),
+        role: (parseInt(body.role) % 2) as UserIDAndRole['role'],
+    };
+}
+
 export async function updatePwd(uid: number, newPwd: string) {
     try {
         const salt = await bcrypt.genSalt();
@@ -112,6 +124,31 @@ export async function getUser(uid: number) {
         );
         return rows[0];
     } catch (e) {
-        throw new ResponseError('Could not fetch from database');
+        throw new ResponseError();
+    }
+}
+
+export async function getAll() {
+    try {
+        const [rows] = await db.execute<RowDataPacket[]>(
+            'select uid,email,name,role from users;'
+        );
+
+        return rows;
+    } catch (e) {
+        throw new ResponseError();
+    }
+}
+
+export async function setRole({ uid, role }: UserIDAndRole) {
+    try {
+        const [result] = await db.execute<ResultSetHeader>(
+            'update users set role=? where uid=?',
+            [role, uid]
+        );
+
+        return result.affectedRows > 0;
+    } catch (e) {
+        throw new ResponseError();
     }
 }
