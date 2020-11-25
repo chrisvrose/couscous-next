@@ -1,8 +1,8 @@
 import React from 'react';
 // import React from 'react';
-import { Accordion, Alert } from 'react-bootstrap';
+import { Accordion, Alert, Spinner } from 'react-bootstrap';
 import useSWR from 'swr';
-import { fetcher } from '../lib/fetcher';
+import { fetcher, ResponseError } from '../lib/fetcher';
 import { GetShardsResponse } from '../lib/ShardInfo';
 import Shard from './ShardAccordion';
 import ShardButtons from './ShardButtons';
@@ -11,7 +11,7 @@ export default function PrintShards() {
     // const { ok, shards, statusCode } = props;
     const { data, error, revalidate, mutate } = useSWR<
         GetShardsResponse,
-        { status: number }
+        ResponseError
     >('/api/getShards', fetcher, {
         revalidateOnFocus: true,
         refreshInterval: 100,
@@ -38,7 +38,13 @@ export default function PrintShards() {
             );
     }
     if (!data) {
-        return <h2>Loading...</h2>;
+        return (
+            <h2>
+                <Spinner animation="border" role="status">
+                    <span className="sr-only">Loading...</span>
+                </Spinner>
+            </h2>
+        );
     } else {
         const { ok, shards } = data;
         if (shards.length > 0) {

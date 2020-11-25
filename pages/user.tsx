@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { Col, Container, Jumbotron, Row } from 'react-bootstrap';
+import { Col, Container, Jumbotron, Row, Spinner } from 'react-bootstrap';
 import useSWR from 'swr';
 import Header from '../components/Header';
 import UserSettings from '../components/UserSettings';
@@ -28,7 +28,11 @@ export function UserInfo() {
     if (!data) {
         return (
             <Jumbotron>
-                <h2>Loading!</h2>
+                <h2>
+                    <Spinner animation="border" role="status">
+                        <span className="sr-only">Loading...</span>
+                    </Spinner>
+                </h2>
             </Jumbotron>
         );
     } else {

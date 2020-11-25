@@ -9,3 +9,7 @@ export const fetcher = async (url: string) => {
     }
     return await res.json();
 };
+
+export interface ResponseError {
+    status: number;
+}

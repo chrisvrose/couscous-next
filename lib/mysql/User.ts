@@ -96,6 +96,8 @@ export async function getFromBody({ body }: NextApiRequest): Promise<User> {
 export async function getUIDAndRoleFromBody({
     body,
 }: NextApiRequest): Promise<UserIDAndRole> {
+    assert(typeof body?.uid === 'number', 'Expected member uid');
+    assert(typeof body?.role === 'number', 'Expected member uid');
     return {
         uid: parseInt(body.uid),
         role: (parseInt(body.role) % 2) as UserIDAndRole['role'],
