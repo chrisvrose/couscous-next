@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion, Button, Card } from 'react-bootstrap';
+import { Accordion, Card } from 'react-bootstrap';
 import { UserElement } from '../lib/types/Users';
 
 interface UserListProps {
@@ -9,15 +9,13 @@ interface UserListProps {
 export default function UserListComponent({ data, doRefresh }: UserListProps) {
     return (
         <Card>
-            <Card.Header>
-                <Accordion.Toggle
-                    as={Button}
-                    variant="link"
-                    eventKey={data.uid.toString()}
-                >
-                    {data.email}
-                </Accordion.Toggle>
-            </Card.Header>
+            <Accordion.Toggle
+                as={Card.Header}
+                variant="link"
+                eventKey={data.uid.toString()}
+            >
+                {data.email}
+            </Accordion.Toggle>
             <Accordion.Collapse eventKey={data.uid.toString()}>
                 <Card.Body>{data.role ? 'Admin' : 'User'}</Card.Body>
             </Accordion.Collapse>
