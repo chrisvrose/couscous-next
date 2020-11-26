@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { NextApiRequest } from 'next';
+import { getBucket } from '../mongo/database';
 import ResponseError from '../types/ResponseError';
 import db from './db';
 import * as File from './File';
@@ -10,6 +11,7 @@ interface getAttrResult {
     name: string;
     permissions: number;
     type: 'folder' | 'file';
+    size?: number;
     mongofileuid?: string;
 }
 
@@ -20,6 +22,20 @@ export async function getattr(pathstr: string): Promise<getAttrResult> {
             'select name,permissions,"file" as type,mongofileuid from file where fid=?',
             [id]
         );
+        const bucket = await getBucket();
+        if (desc.mongofileuid) {
+            const [res] = await bucket
+                .find(
+                    { filename: desc.mongofileuid },
+                    { sort: { uploadDate: -1 } }
+                )
+                .toArray();
+            if (res) desc.size = res.length;
+            else throw new ResponseError('could not get mongo file', 404);
+        } else {
+            desc.size = 0;
+        }
+
         return desc as getAttrResult;
         //desc[0]
     } catch (e) {

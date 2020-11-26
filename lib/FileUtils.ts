@@ -4,11 +4,11 @@ import path from 'path';
  * flags
  * @param flags flags integer
  */
-export async function toFlags(flags: number) {
+export function toFlags(flags: number) {
     flags = flags & 3;
-    if (flags === 0) return 'r';
-    if (flags === 1) return 'w';
-    return 'r+';
+    if (flags === 0) return 0b10; //return 'r';
+    if (flags === 1) return 0b01; //'w';
+    return 0b11; //'r+';
 }
 
 /**

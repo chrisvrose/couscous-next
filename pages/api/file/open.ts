@@ -6,14 +6,14 @@ import { auth } from '../../../lib/MiscAuth';
 import * as File from '../../../lib/mysql/File';
 import status from '../../../lib/types/Response';
 
-async function read(req: NextApiRequest, res: NextApiResponse<status>) {
+async function open(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
     // await mongos.connect();
-    const { operation, path } = await File.getPathOperationFromBody(req);
+    const { operation, path } = await File.getOpenOperationFromBody(req);
     // TODO
     const result = await File.open(path, authResult.uid, operation);
 
     res.json({ ok: true, result });
 }
 
-export default APIErrorHandler(read);
+export default APIErrorHandler(open);
