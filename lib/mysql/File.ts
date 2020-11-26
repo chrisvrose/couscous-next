@@ -16,7 +16,7 @@ export async function getFile(pathstr: string) {
     const parentPath = FileUtils.folderPath(pathstr);
     const parentfoid = await Folder.getFolderID(parentPath);
     const fileName = FileUtils.fileName(pathstr);
-    console.log(fileName);
+    // console.log(fileName);
     let rows: RowDataPacket[];
     if (parentfoid === null)
         rows = (
@@ -232,7 +232,7 @@ export async function read(
                     data = Buffer.concat([data, d]);
                 })
                 .on('error', e => {
-                    console.log(e);
+                    // console.log(e);
                     rej(new ResponseError('End my suffering', 500));
                 })
                 .on('end', () => {

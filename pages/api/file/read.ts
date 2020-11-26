@@ -13,7 +13,7 @@ async function read(req: NextApiRequest, res: NextApiResponse) {
     const result = await File.read(fd, authResult.uid, length, position);
     // const result = await File.open(path, authResult.uid, operation);
 
-    console.log(result);
+    // console.log(result);
     res.send(result);
     // res.setHeader('Content-Type', 'application/octet-stream');
     // res.end(result);
