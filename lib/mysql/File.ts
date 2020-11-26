@@ -235,8 +235,7 @@ export async function read(
             bucket
                 .openDownloadStreamByName(file.mongofileuid, {
                     start: position,
-                    end:
-                        lastChunkPos < computedEnd ? lastChunkPos : computedEnd,
+                    end: size < computedEnd ? size : computedEnd,
                     revision: -1,
                 })
                 .on('data', d => {
