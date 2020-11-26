@@ -128,9 +128,8 @@ export async function assertFidPerms(fid: number, uid: number, flags: number) {
     }
     //convert this flag into a bitwise rw form -
     const rwFlag = FileUtils.toFlags(flags);
-    const allowed =
-        ((fileContent.permissions >> offset) & FileUtils.toFlags(rwFlag)) ===
-        rwFlag;
+    console.log('Comparing', fileContent.permissions, rwFlag);
+    const allowed = ((fileContent.permissions >> offset) & rwFlag) === rwFlag;
 
     if (!allowed) {
         throw new ResponseError('Permission mismatch', 401);
@@ -217,13 +216,27 @@ export async function read(
 
     if (file.mongofileuid !== null) {
         const bucket = await getBucket();
+
+        //find file and get size first
+        let size: number;
+        const [res] = await bucket
+            .find({ filename: file.mongofileuid }, { sort: { uploadDate: -1 } })
+            .toArray();
+        if (res) size = res.length;
+        else throw new ResponseError('could not get mongo file', 404);
+
         // console.log(bucket.find({ name: file.mongofileuid }));
         return new Promise<Buffer>((res, rej) => {
             let data: Buffer = Buffer.from([]);
+            // store this and ensure asking for last bit
+            const lastChunkPos = size - 1;
+            const computedEnd = position + length;
+
             bucket
                 .openDownloadStreamByName(file.mongofileuid, {
                     start: position,
-                    end: position + length,
+                    end:
+                        lastChunkPos < computedEnd ? lastChunkPos : computedEnd,
                     revision: -1,
                 })
                 .on('data', d => {
@@ -233,7 +246,7 @@ export async function read(
                 })
                 .on('error', e => {
                     // console.log(e);
-                    rej(new ResponseError('End my suffering', 500));
+                    rej(new ResponseError('Error reading file', 500));
                 })
                 .on('end', () => {
                     res(data);
