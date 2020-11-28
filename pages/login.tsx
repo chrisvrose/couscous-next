@@ -59,7 +59,7 @@ export default function Home() {
                 <Row>
                     <Col md={{ span: 6, offset: 3 }}>
                         <Container fluid style={{ textAlign: 'center' }}>
-                            <h2>Login Portal</h2>
+                            <h2>Login</h2>
                         </Container>
                         <Form
                             onSubmit={onFormSubmit}
