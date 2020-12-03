@@ -104,6 +104,16 @@ export async function getUIDAndRoleFromBody({
     };
 }
 
+export async function getUIDFromBody({
+    body,
+}: NextApiRequest): Promise<UserID> {
+    assert(typeof body?.uid === 'number', 'Expected member uid');
+    // assert(typeof body?.role === 'number', 'Expected member uid');
+    return {
+        uid: parseInt(body.uid),
+    };
+}
+
 export async function updatePwd(uid: number, newPwd: string) {
     try {
         const salt = await bcrypt.genSalt();
