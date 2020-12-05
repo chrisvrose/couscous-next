@@ -128,7 +128,7 @@ export async function assertFidPerms(fid: number, uid: number, flags: number) {
     }
     //convert this flag into a bitwise rw form -
     const rwFlag = FileUtils.toFlags(flags);
-    console.log('Comparing', fileContent.permissions, rwFlag);
+    // console.log('Comparing', fileContent.permissions, rwFlag);
     const allowed = ((fileContent.permissions >> offset) & rwFlag) === rwFlag;
 
     if (!allowed) {

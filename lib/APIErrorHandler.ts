@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { performance } from 'perf_hooks';
 import Response from './types/Response';
 import ResponseError from './types/ResponseError';
-
 export default function (
     wrapped: (
         req: NextApiRequest,
@@ -13,7 +13,11 @@ export default function (
         res: NextApiResponse<Response>
     ) {
         try {
+            // console.time(``)
+            const time1 = performance.now();
             await wrapped(req, res);
+            const time2 = performance.now();
+            console.log(req?.url, `${(time2 - time1).toFixed(4)} ms`);
         } catch (err) {
             if (err instanceof ResponseError) {
                 res.status(err.statusCode).json({
