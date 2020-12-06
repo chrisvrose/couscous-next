@@ -1,5 +1,6 @@
 import React, { useContext } from 'react';
 import { Col, Container, Row } from 'react-bootstrap';
+import GroupListPageLet from '../components/GroupListPagelet';
 import Header from '../components/Header';
 import ShardMenu from '../components/ShardList';
 import UserListPagelet from '../components/UserListPagelet';
@@ -18,6 +19,7 @@ export default function Dashboard() {
                     </Col>
                 </Row>
                 <UserListPagelet />
+                <GroupListPageLet />
             </Container>
         </>
     );

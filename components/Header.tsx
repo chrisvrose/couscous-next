@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import Link from 'next/link';
+import Router from 'next/router';
 import { MouseEvent, useContext, useEffect } from 'react';
 // import {useRouter} from 'next/router';
 import { Nav, Navbar } from 'react-bootstrap';
@@ -17,13 +18,14 @@ const handleLogin = ({ userState, dispatch }: UserMemo) => (
         .then(response => {
             if (response.ok && response.status === 200) {
                 dispatch({ type: 'logout' });
+                Router.push('/');
             }
         })
         .catch(e => {
             // we were never logged in to begin with :)
             if (e?.status !== 403) {
                 console.warn(
-                    'E',
+                    'W',
                     'Arcane Stuff happening, could not even try to logout'
                 );
             }

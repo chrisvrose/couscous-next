@@ -14,7 +14,7 @@ export default function PrintShards() {
         ResponseError
     >('/api/getShards', fetcher, {
         revalidateOnFocus: true,
-        refreshInterval: 100,
+        refreshInterval: 1000,
     }); //as responseInterface<GetShardsResponse, { status: number }>;
     const doRevalidate = () => mutate(undefined, true);
     if (error) {

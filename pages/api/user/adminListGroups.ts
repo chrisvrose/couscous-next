@@ -7,6 +7,7 @@ import status from '../../../lib/types/Response';
 
 /**
  * List all groups user is in
+ * Not used
  * Requires admin
  * @param req needs uid
  * @param res

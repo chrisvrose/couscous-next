@@ -21,10 +21,10 @@ export default function UserListComponent({ data, doRefresh }: UserListProps) {
                 .then(result => {
                     return doRefresh();
                 })
-                .then(res => {
-                    setUpdating(false);
+                .catch(e => {
+                    console.log('E>', e);
                 })
-                .catch(err => {
+                .finally(() => {
                     setUpdating(false);
                 });
         }

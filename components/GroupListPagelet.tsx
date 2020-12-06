@@ -2,14 +2,15 @@ import React, { useContext } from 'react';
 import { Accordion, Col, Row, Spinner } from 'react-bootstrap';
 import useSWR from 'swr';
 import UserContext from '../lib/contexts/UserContext';
-import { fetcher, ResponseError } from '../lib/fetcher';
-import { UserPageResponse } from '../lib/types/Users';
-import UserListComponent from './UserListComponent';
+import { fetcher } from '../lib/fetcher';
+import { GroupListResponse } from '../lib/types/Group';
+import ResponseError from '../lib/types/ResponseError';
+import GroupListComponent from './GroupListComponent';
 
-export default function UserListPagelet() {
+export default function GroupListPageLet() {
     const { userState, dispatch: dispatchUser } = useContext(UserContext);
-    const { data, error, mutate } = useSWR<UserPageResponse, ResponseError>(
-        '/api/user/list',
+    const { data, error, mutate } = useSWR<GroupListResponse, ResponseError>(
+        '/api/group/list',
         fetcher,
         {
             revalidateOnFocus: true,
@@ -17,9 +18,13 @@ export default function UserListPagelet() {
             shouldRetryOnError: false,
         }
     );
+
     const refreshData = async () => mutate(undefined, true);
 
     if (error) {
+        if (error?.statusCode === 403) {
+            dispatchUser({ type: 'logout' });
+        }
         return <></>;
     }
     if (!data) {
@@ -36,20 +41,23 @@ export default function UserListPagelet() {
         return (
             <Row className="spacer-top-margin-lot" md={8}>
                 <Col md={{ span: 8, offset: 2 }}>
-                    <h3>Configure Users</h3>
+                    <h3>Groups</h3>
                     <Accordion>
-                        {data.users.map(user => (
-                            <UserListComponent
-                                key={user.uid}
-                                data={user}
-                                doRefresh={refreshData}
-                            />
-                        ))}
+                        {data.groups.length > 0 ? (
+                            data.groups.map(group => (
+                                // return <div key={group.gid}>{group.name}</div>;
+                                <GroupListComponent
+                                    key={group.gid}
+                                    data={group}
+                                    doRefresh={refreshData}
+                                />
+                            ))
+                        ) : (
+                            <div>No groups</div>
+                        )}
                     </Accordion>
                 </Col>
             </Row>
         );
     }
-
-    // return <div>Hello</div>;
 }

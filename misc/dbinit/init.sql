@@ -25,7 +25,8 @@ create table groupmember (
     uid integer,
     gid integer,
     foreign key (uid) references users(uid),
-    foreign key (gid) references usergroups(gid)
+    foreign key (gid) references usergroups(gid),
+    UNIQUE KEY (uid,gid)
 );
 
 CREATE TABLE folder(
