@@ -79,9 +79,7 @@ function GroupMembers({
                 console.warn('Could not update group name', err);
             });
     };
-    // useEffect(() => {
-    //     console.log('L', members, error, { gid });
-    // }, [members, error]);
+
     const refreshMemberData = async () => mutate(undefined, true);
     if (error) {
         return <></>;

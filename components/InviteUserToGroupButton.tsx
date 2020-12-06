@@ -64,7 +64,7 @@ export default function InviteUserToGroupButton(props: InviteButtonProps) {
             <>
                 <ButtonGroup aria-label="Buttons" className={props.className}>
                     <Button onClick={handleOpenAdd} variant="outline-primary">
-                        Add
+                        Add to Group
                     </Button>
                 </ButtonGroup>
                 <Modal show={show} onHide={handleClose}>
