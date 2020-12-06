@@ -37,6 +37,15 @@ export function getGIDFromBody({ body }: NextApiRequest): groupID {
     };
 }
 
+export function getGIDNameFromBody({ body }: NextApiRequest) {
+    assert(typeof body?.gid === 'number', 'Expected Group id');
+    assert(typeof body?.name === 'string', 'Expected Group Name');
+    return {
+        gid: parseInt(body.gid),
+        name: body.name as string,
+    };
+}
+
 export function getGIDFromReq({ query }: NextApiRequest): groupID {
     try {
         const res = parseInt(query.gid as string);
@@ -119,6 +128,18 @@ export async function add(name: string) {
             [name]
         );
         return res.insertId;
+    } catch (e) {
+        throw new ResponseError();
+    }
+}
+
+export async function rename(gid: number, newName: string) {
+    try {
+        const [res] = await db.execute<ResultSetHeader>(
+            'update usergroups set name=? where gid=?',
+            [newName, gid]
+        );
+        return res.affectedRows;
     } catch (e) {
         throw new ResponseError();
     }

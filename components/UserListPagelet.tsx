@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import UserContext from '../lib/contexts/UserContext';
 import { fetcher, ResponseError } from '../lib/fetcher';
 import { UserPageResponse } from '../lib/types/Users';
+import AddUserButton from './AddUserButton';
 import UserListComponent from './UserListComponent';
 
 export default function UserListPagelet() {
@@ -46,6 +47,10 @@ export default function UserListPagelet() {
                             />
                         ))}
                     </Accordion>
+                    <AddUserButton
+                        doRevalidate={refreshData}
+                        className="full-width spacer-top-margin"
+                    />
                 </Col>
             </Row>
         );

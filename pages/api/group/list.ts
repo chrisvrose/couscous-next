@@ -6,7 +6,6 @@ import status from '../../../lib/types/Response';
 
 /**
  * List all groups
- * Admin only
  * @param req
  * @param res
  */

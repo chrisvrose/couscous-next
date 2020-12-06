@@ -30,7 +30,7 @@ export default function UserListComponent({ data, doRefresh }: UserListProps) {
         }
     };
 
-    console.log(data.role);
+    // console.log(data.role);
     return (
         <Card>
             <Accordion.Toggle

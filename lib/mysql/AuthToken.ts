@@ -37,6 +37,8 @@ export async function getExists(uid: number, atoken: string) {
         const { count } = rows[0];
         return count === 1;
     } catch (e) {
+        console.log('E', db, e);
+        // console.log(e);
         return false;
     }
 }
