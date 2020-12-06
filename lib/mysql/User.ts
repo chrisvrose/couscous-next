@@ -93,6 +93,13 @@ export async function getFromBody({ body }: NextApiRequest): Promise<User> {
     }
 }
 
+export function getEmailFromBody({ body }: NextApiRequest) {
+    assert(typeof body?.email === 'string', 'Expected email');
+    return {
+        email: body.email as string,
+    };
+}
+
 export async function getUIDAndRoleFromBody({
     body,
 }: NextApiRequest): Promise<UserIDAndRole> {
@@ -125,6 +132,18 @@ export async function updatePwd(uid: number, newPwd: string) {
         return rows.affectedRows === 1;
     } catch (e) {
         throw new ResponseError('Could not add');
+    }
+}
+
+export async function toUID(email: string) {
+    try {
+        const [rows] = await db.execute<RowDataPacket[]>(
+            'select uid from users where email=?',
+            [email]
+        );
+        return rows[0];
+    } catch (e) {
+        throw new ResponseError();
     }
 }
 

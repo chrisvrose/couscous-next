@@ -14,6 +14,7 @@ import { GroupListLet } from '../lib/types/Group';
 import ResponseError from '../lib/types/ResponseError';
 import { UserPageResponse } from '../lib/types/Users';
 import GroupListMemberUser from './GroupListMemberUser';
+import InviteUserToGroupButton from './InviteUserToGroupButton';
 
 interface GroupListProps {
     data: GroupListLet;
@@ -124,6 +125,11 @@ function GroupMembers({
                         <span>--No Members--</span>
                     )}
                 </Accordion>
+                <InviteUserToGroupButton
+                    className="full-width spacer-top-margin"
+                    gid={gid}
+                    doRevalidate={refreshMemberData}
+                />
             </>
         );
     }

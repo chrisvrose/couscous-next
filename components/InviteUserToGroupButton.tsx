@@ -2,40 +2,53 @@ import React, { useContext, useState } from 'react';
 import { Alert, Button, ButtonGroup, Form, Modal } from 'react-bootstrap';
 import UserContext from '../lib/contexts/UserContext';
 
-export interface UserButtonProps {
+export interface InviteButtonProps {
     className?: string;
+    gid: number;
     doRevalidate: () => Promise<any>;
 }
 
-export default function AddUserButton(props: UserButtonProps) {
+export default function InviteUserToGroupButton(props: InviteButtonProps) {
     const { userState } = useContext(UserContext);
 
     const [show, setShow] = useState(false);
     const [formData, setFormData] = useState({
         email: '',
-        name: '',
-        pwd: '',
-        role: false,
     });
     //status -
     const [submitResult, setSubmit] = useState<boolean>(null);
     const handleClose = () => setShow(false);
     const handleOpenAdd = () => {
         setSubmit(null);
-        setFormData({ email: '', name: '', pwd: '', role: false });
+        setFormData({ email: '' });
         setShow(true);
     };
     const handleSubmit = async (event: React.FormEvent<HTMLElement>) => {
         event.preventDefault();
         try {
-            const res = await fetch('/api/user/add', {
+            const uidres = await fetch('/api/user/toUID', {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
                 method: 'POST',
             });
-            console.assert(res.ok, 'E> Could not add user');
-            const resjson: { ok: boolean } = await res.json();
-            if (resjson.ok) {
+            console.assert(uidres.ok, 'E> Could not add user');
+            const uidresjson: {
+                ok: boolean;
+                uid?: number;
+            } = await uidres.json();
+
+            // hack - throw an error if not an integer
+            const uid = parseInt(uidresjson.uid as any);
+
+            const res = await fetch('/api/group/invite', {
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    uid,
+                    gid: props.gid,
+                }),
+                method: 'POST',
+            });
+            if (uidresjson.ok && !isNaN(uid)) {
                 setSubmit(true);
                 await props.doRevalidate();
             } else {
@@ -50,24 +63,16 @@ export default function AddUserButton(props: UserButtonProps) {
         return (
             <>
                 <ButtonGroup aria-label="Buttons" className={props.className}>
-                    <Button onClick={handleOpenAdd}>Add</Button>
+                    <Button onClick={handleOpenAdd} variant="outline-primary">
+                        Add
+                    </Button>
                 </ButtonGroup>
                 <Modal show={show} onHide={handleClose}>
                     <Form onSubmit={handleSubmit}>
                         <Modal.Header closeButton>
-                            <Modal.Title>Add User</Modal.Title>
+                            <Modal.Title>Add User to Group</Modal.Title>
                         </Modal.Header>
                         <Modal.Body>
-                            <Form.Control
-                                placeholder="Name"
-                                className="spacer-top-margin"
-                                onChange={e =>
-                                    setFormData({
-                                        ...formData,
-                                        name: e.target.value,
-                                    })
-                                }
-                            />
                             <Form.Control
                                 className="spacer-top-margin"
                                 placeholder="Email"
@@ -79,28 +84,6 @@ export default function AddUserButton(props: UserButtonProps) {
                                     })
                                 }
                             />
-                            <Form.Control
-                                className="spacer-top-margin"
-                                placeholder="Initial Password"
-                                type="password"
-                                onChange={e =>
-                                    setFormData({
-                                        ...formData,
-                                        pwd: e.target.value,
-                                    })
-                                }
-                            />
-                            <Form.Check
-                                className="spacer-top-margin"
-                                type="checkbox"
-                                label="Is Admin"
-                                onChange={e =>
-                                    setFormData({
-                                        ...formData,
-                                        role: e.target.checked,
-                                    })
-                                }
-                            ></Form.Check>
                             <Alert
                                 show={submitResult !== null}
                                 variant={submitResult ? 'success' : 'danger'}
