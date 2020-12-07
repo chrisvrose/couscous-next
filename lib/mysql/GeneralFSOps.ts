@@ -1,12 +1,12 @@
 import assert from 'assert';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { NextApiRequest } from 'next';
+import * as FileUtils from '../FileUtils';
 import { getBucket } from '../mongo/database';
 import ResponseError from '../types/ResponseError';
 import db from './db';
 import * as File from './File';
 import * as Folder from './Folder';
-
 interface getAttrResult {
     name: string;
     permissions: number;
@@ -93,6 +93,25 @@ export async function getPathPermsFromBody({ body }: NextApiRequest) {
     }
 }
 
+export function getSrcDestFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body?.src === 'string', 'Expected src');
+        assert(typeof body?.dest === 'string', 'Expected dest');
+        // assert(body);
+
+        /**
+         * trim permissions every time to prevent sending random perms
+         */
+        return {
+            src: body.src as string,
+            dest: body.dest as string,
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
 export async function assertUnique(itemname: string, parentfoid: number) {
     try {
         //morph function call based on if parentfoid is null
@@ -128,13 +147,63 @@ export async function chmod(pathstr: string, newPerms: number, uid: number) {
                 if (id) {
                     const [result] = await db.execute<ResultSetHeader>(
                         'update folder set permissions=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
-                        [id]
+                        [newPerms, id, uid, uid]
                     );
 
                     return result.affectedRows;
                 } else {
                     // cannot chmod the folder
                     throw new ResponseError('cannot allow chmod', 401);
+                }
+            } catch (err) {
+                if (err instanceof ResponseError && err.statusCode === 404) {
+                    throw new ResponseError('could not find', 404);
+                }
+                // propagate e
+                throw err;
+            }
+        }
+        // propagate e
+        throw e;
+    }
+}
+
+export async function rename(src: string, dest: string, uid: number) {
+    try {
+        const id = await File.getFile(src);
+        //update only if user owns orz` belongs to group
+        // const newparent = await FileUtils
+        const parentPath = FileUtils.folderPath(dest);
+        const newName = FileUtils.fileName(dest);
+        const parentfoid = await Folder.getFolderID(parentPath);
+        const [result] = await db.execute<ResultSetHeader>(
+            'update file set parentfoid=?,name=? where fid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
+            [parentfoid, newName, id, uid, uid]
+        );
+
+        console.log('I>', result);
+        return result.affectedRows;
+        //desc[0]
+    } catch (e) {
+        if (e instanceof ResponseError && e.statusCode === 404) {
+            //this is an error trying to get file, lets try getting a folder
+            try {
+                const id = await Folder.getFolderID(src);
+
+                const newName = FileUtils.fileName(dest);
+                const parentPath = FileUtils.folderPath(dest);
+                const parentfoid = await Folder.getFolderID(parentPath);
+
+                if (id) {
+                    const [result] = await db.execute<ResultSetHeader>(
+                        'update folder set parentfoid=?,name=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
+                        [parentfoid, newName, id, uid, uid]
+                    );
+
+                    return result.affectedRows;
+                } else {
+                    // cannot chmod the folder
+                    throw new ResponseError('cannot allow rename', 401);
                 }
             } catch (err) {
                 if (err instanceof ResponseError && err.statusCode === 404) {

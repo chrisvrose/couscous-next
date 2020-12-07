@@ -5,11 +5,11 @@ import { auth } from '../../../lib/MiscAuth';
 import * as GeneralOps from '../../../lib/mysql/GeneralFSOps';
 import status from '../../../lib/types/Response';
 
-async function chmod(req: NextApiRequest, res: NextApiResponse<status>) {
+async function rename(req: NextApiRequest, res: NextApiResponse<status>) {
     const authdetails = await auth(req);
-    const { path, permissions } = await GeneralOps.getPathPermsFromBody(req);
-    const changed = await GeneralOps.chmod(path, permissions, authdetails.uid);
+    const { src, dest } = GeneralOps.getSrcDestFromBody(req);
+    const changed = await GeneralOps.rename(src, dest, authdetails.uid);
     res.json({ ok: true, changed });
 }
 
-export default APIErrorHandler(chmod);
+export default APIErrorHandler(rename);
