@@ -7,47 +7,9 @@ import { getBucket } from '../mongo/database';
 import ResponseError from '../types/ResponseError';
 import db from './db';
 import * as Folder from './Folder';
+import { assertUnique } from './GeneralFSOps';
 
-/**
- * Get file id
- * @param pathstr
- */
-export async function getFile(pathstr: string) {
-    const parentPath = FileUtils.folderPath(pathstr);
-    const parentfoid = await Folder.getFolderID(parentPath);
-    const fileName = FileUtils.fileName(pathstr);
-    // console.log(fileName);
-    let rows: RowDataPacket[];
-    if (parentfoid === null)
-        rows = (
-            await db.execute<RowDataPacket[]>(
-                'select name,fid from file where parentfoid is null',
-                [parentfoid]
-            )
-        )[0];
-    else
-        rows = (
-            await db.execute<RowDataPacket[]>(
-                'select name,fid from file where parentfoid=?',
-                [parentfoid]
-            )
-        )[0];
-    console.log(rows, parentfoid);
-    // TODO
-    let ans = rows.filter(e => e.name == fileName) as {
-        name: string;
-        fid: number;
-    }[];
-
-    // this is a warning test
-    if (ans.length > 1) {
-        console.warn(`W>Multiple files under foid ${parentfoid}`);
-    }
-
-    if (ans.length === 0) throw new ResponseError('Could not find file', 404);
-    return ans[0].fid;
-}
-
+//#region parse Inputs
 export async function getReadOperationFromBody({ body }: NextApiRequest) {
     try {
         assert(body, 'Expected body');
@@ -93,6 +55,47 @@ export async function getPathFdFromBody({ body }: NextApiRequest) {
     } catch (e) {
         throw new ResponseError(e.message ?? 'Malformed request', 400);
     }
+}
+//#endregion
+
+/**
+ * Get file id
+ * @param pathstr
+ */
+export async function getFile(pathstr: string) {
+    const parentPath = FileUtils.folderPath(pathstr);
+    const parentfoid = await Folder.getFolderID(parentPath);
+    const fileName = FileUtils.fileName(pathstr);
+    // console.log(fileName);
+    let rows: RowDataPacket[];
+    if (parentfoid === null)
+        rows = (
+            await db.execute<RowDataPacket[]>(
+                'select name,fid from file where parentfoid is null',
+                [parentfoid]
+            )
+        )[0];
+    else
+        rows = (
+            await db.execute<RowDataPacket[]>(
+                'select name,fid from file where parentfoid=?',
+                [parentfoid]
+            )
+        )[0];
+    console.log(rows, parentfoid);
+    // TODO
+    let ans = rows.filter(e => e.name == fileName) as {
+        name: string;
+        fid: number;
+    }[];
+
+    // this is a warning test
+    if (ans.length > 1) {
+        console.warn(`W>Multiple files under foid ${parentfoid}`);
+    }
+
+    if (ans.length === 0) throw new ResponseError('Could not find file', 404);
+    return ans[0].fid;
 }
 
 /**
@@ -178,6 +181,30 @@ export async function open(pathstr: string, uid: number, flags: number) {
     );
 
     return res.insertId;
+}
+
+export async function create(pathStr: string, uid: number, mode: number) {
+    const parentPath = FileUtils.folderPath(pathStr);
+    const parentfoid = await Folder.getFolderID(parentPath);
+    let gidcalc: number;
+    if (parentfoid === null) {
+        gidcalc = 1; //the first group ever created
+    } else {
+        const [rows] = await db.execute('select gid from folder where foid=?', [
+            parentfoid,
+        ]);
+        gidcalc = rows[0].gid;
+    }
+    //now to assert uniqueness
+    const itemname = FileUtils.fileName(pathStr);
+    await assertUnique(itemname, parentfoid);
+
+    // now to create an entry
+    const [rows] = await db.execute<ResultSetHeader>(
+        'insert into file(name,uid,gid,permissions,parentfoid,mongofileuid) values(?,?,?,?,?,?)',
+        [itemname, uid, gidcalc, mode, parentfoid, null]
+    );
+    return rows.insertId;
 }
 
 /**

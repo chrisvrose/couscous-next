@@ -1,9 +1,10 @@
 import assert from 'assert';
-import { RowDataPacket } from 'mysql2';
+import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { NextApiRequest } from 'next';
 import * as FileUtils from '../FileUtils';
 import ResponseError from '../types/ResponseError';
 import db from './db';
+import { assertUnique } from './GeneralFSOps';
 
 export async function getFromBody({ body }: NextApiRequest) {
     try {
@@ -99,4 +100,26 @@ export async function getContents(pathstr: string) {
     return res.map(e => e.name) as string[];
 }
 
-// export async function
+export async function create(pathStr: string, uid: number, mode: number) {
+    const parentPath = FileUtils.folderPath(pathStr);
+    const parentfoid = await getFolderID(parentPath);
+    let gidcalc: number;
+    if (parentfoid === null) {
+        gidcalc = 1; //the first group ever created
+    } else {
+        const [rows] = await db.execute('select gid from folder where foid=?', [
+            parentfoid,
+        ]);
+        gidcalc = rows[0].gid;
+    }
+    //now to assert uniqueness
+    const itemname = FileUtils.fileName(pathStr);
+    await assertUnique(itemname, parentfoid);
+
+    // now to create an entry
+    const [rows] = await db.execute<ResultSetHeader>(
+        'insert into folder(name,uid,gid,permissions,parentfoid) values(?,?,?,?,?)',
+        [itemname, uid, gidcalc, mode, parentfoid]
+    );
+    return rows.insertId;
+}

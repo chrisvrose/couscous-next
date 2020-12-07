@@ -93,6 +93,22 @@ export async function getPathPermsFromBody({ body }: NextApiRequest) {
     }
 }
 
+export async function assertUnique(itemname: string, parentfoid: number) {
+    try {
+        //morph function call based on if parentfoid is null
+        const [rows] = await db.execute<RowDataPacket[]>(
+            parentfoid !== null
+                ? 'select name from folder where parentfoid=? union select name from file where parentfoid=?'
+                : 'select name from folder where parentfoid is null union select name from file where parentfoid is null',
+            parentfoid === null ? undefined : [parentfoid, parentfoid]
+        );
+        const itemnames = rows.map(e => e.name) as string[];
+        assert(!itemnames.includes(itemname));
+    } catch (e) {
+        throw new ResponseError('existing file/folder', 400);
+    }
+}
+
 export async function chmod(pathstr: string, newPerms: number, uid: number) {
     try {
         const id = await File.getFile(pathstr);
