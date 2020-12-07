@@ -24,11 +24,41 @@ Run it and mount it to use it as a standard filesystem.
     - [TL;DR](#tldr)
   - [TOC](#toc)
   - [Getting Started](#getting-started)
-- [Docker Compose](#docker-compose)
-  - [.env config](#env-config)
-  - [Portmap](#portmap)
+    - [Docker Compose](#docker-compose)
+      - [.env config](#env-config)
+      - [Portmap](#portmap)
+    - [Webserver](#webserver)
 
 ## Getting Started
+
+### Docker Compose
+
+Docker is the recommended/easier way of starting up the system for development/simple usage.
+Note: Docker tucks the web server away into `8081`
+
+#### .env config
+
+| Environment Variable | Description               |
+| -------------------- | ------------------------- |
+| MYSQL_PASSWORD       | mysql `couscous` password |
+| MYSQL_ROOT_PASSWORD  | mysql `root` password     |
+| ACCESS_TOKEN_SECRET  | JWT access token secret   |
+
+#### Portmap
+
+| Port  | Application   |
+| ----- | ------------- |
+| 8081  | next          |
+| 3306  | mysql         |
+| 27017 | mongos        |
+| 27018 | mongodb cfg1  |
+| 27027 | mongo shard 1 |
+| 27028 | mongo shard 2 |
+
+
+### Webserver
+
+Note: Either run the system using `docker-compose`, or set up the required subsystems and add the required environment variables (Refer to the environment variables used by the `web` container).
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
@@ -39,26 +69,3 @@ npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) (or 8081 if using docker) with your browser to see the result.
-
-# Docker Compose
-
-Note: Docker tucks the web server away into `8081`
-
-## .env config
-
-| Environment Variable | Description               |
-| -------------------- | ------------------------- |
-| MYSQL_PASSWORD       | mysql `couscous` password |
-| MYSQL_ROOT_PASSWORD  | mysql `root` password     |
-| ACCESS_TOKEN_SECRET  | JWT access token secret   |
-
-## Portmap
-
-| Port  | Application   |
-| ----- | ------------- |
-| 8081  | next          |
-| 3306  | mysql         |
-| 27017 | mongos        |
-| 27018 | mongodb cfg1  |
-| 27027 | mongo shard 1 |
-| 27028 | mongo shard 2 |
