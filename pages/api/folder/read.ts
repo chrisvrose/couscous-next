@@ -9,7 +9,7 @@ import status from '../../../lib/types/Response';
 async function read(req: NextApiRequest, res: NextApiResponse<status>) {
     await auth(req);
     // await mongos.connect();
-    const body = await Folder.getFromBody(req);
+    const body = await Folder.getPathFromBody(req);
     const contents = await Folder.getContents(body.path);
 
     res.json({ ok: true, contents });

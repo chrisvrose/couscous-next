@@ -6,7 +6,7 @@ import ResponseError from '../types/ResponseError';
 import db from './db';
 import { assertUnique } from './GeneralFSOps';
 
-export async function getFromBody({ body }: NextApiRequest) {
+export async function getPathFromBody({ body }: NextApiRequest) {
     try {
         assert(body, 'Expected body');
         assert(typeof body.path === 'string', 'Expected path');
@@ -122,4 +122,17 @@ export async function create(pathStr: string, uid: number, mode: number) {
         [itemname, uid, gidcalc, mode, parentfoid]
     );
     return rows.insertId;
+}
+
+export async function remove(pathStr: string) {
+    // const parentPath = FileUtils.folderPath(pathStr);
+    const mypath = FileUtils.toRoot(pathStr);
+    const myfoid = await getFolderID(mypath);
+
+    // check that we shall not orphan any files and folders, and then proceed to delete them
+    const [rows] = await db.execute<ResultSetHeader>(
+        'delete from folder where foid=? and (select count(foid) from (SELECT * FROM folder) AS X where parentfoid=?)<1 and (select count(fid) from file where parentfoid=?)<1;',
+        [myfoid, myfoid, myfoid]
+    );
+    return rows.affectedRows;
 }
