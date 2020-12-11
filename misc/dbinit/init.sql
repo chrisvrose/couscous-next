@@ -12,7 +12,7 @@ CREATE TABLE users (
 CREATE TABLE atokens (
     uid integer not null,
     atoken varchar(256) not null UNIQUE,
-    foreign key (uid) references users(uid)
+    foreign key (uid) references users(uid) on delete cascade
 );
 
 CREATE TABLE usergroups (
@@ -24,8 +24,8 @@ CREATE TABLE usergroups (
 create table groupmember (
     uid integer,
     gid integer,
-    foreign key (uid) references users(uid),
-    foreign key (gid) references usergroups(gid),
+    foreign key (uid) references users(uid) on delete cascade,
+    foreign key (gid) references usergroups(gid) on delete cascade,
     UNIQUE KEY (uid,gid)
 );
 
@@ -34,6 +34,9 @@ CREATE TABLE folder(
     name TEXT not null,
     uid integer not null,
     gid integer not null,
+    atime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     permissions integer not null,
     parentfoid smallint ,
     foreign key (uid) references users(uid),
@@ -46,6 +49,9 @@ CREATE TABLE file(
     name TEXT not null,
     uid integer not null,
     gid integer not null,
+    atime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ctime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mtime TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     permissions integer not null,
     parentfoid smallint,
     mongofileuid text,
@@ -59,8 +65,8 @@ CREATE TABLE usersession(
     uid integer not null,
     operation integer not null,
     fid smallint not null,
-    foreign key (uid) references users(uid),
-    foreign key (fid) references file(fid)
+    foreign key (uid) references users(uid) on delete cascade,
+    foreign key (fid) references file(fid) on delete cascade
 );
 
 -- admin with password 'password'
@@ -71,7 +77,7 @@ insert into usergroups(name) values("mygroup");
 insert into groupmember values(1,1);
 
 -- insert some files and folders
-insert into folder values(1,"world",1,1,420,NULL);
-insert into folder values(2,"border",1,1,420,NULL);
-insert into file values(1,"open.txt" ,1,1,420,1   ,NULL);
-insert into file values(2,"hello.txt",1,1,420,NULL,NULL);
+insert into folder(foid,name,uid,gid,permissions) values(1,"world",1,1,420);
+insert into folder(foid,name,uid,gid,permissions) values(2,"border",1,1,420);
+insert into file(fid,name,uid,gid,permissions,parentfoid) values(1,"open.txt" ,1,1,420,1   );
+insert into file(fid,name,uid,gid,permissions) values(2,"hello.txt",1,1,420);

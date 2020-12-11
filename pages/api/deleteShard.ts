@@ -8,7 +8,7 @@ import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
 import APIErrorHandler from '../../lib/APIErrorHandler';
 import { assertAdmin, auth } from '../../lib/MiscAuth';
-import { mongos } from '../../lib/mongo/database';
+import { mdb } from '../../lib/mongo/database';
 import status from '../../lib/types/Response';
 
 async function deleteShard(req: NextApiRequest, res: NextApiResponse<status>) {
@@ -21,8 +21,7 @@ async function deleteShard(req: NextApiRequest, res: NextApiResponse<status>) {
     //check if admin
     await admin;
 
-    await mongos.connect();
-    const db = mongos.db('admin');
+    const db = await mdb('admin');
     const resp = await db.command({ removeShard: location });
 
     res.status(200).json({ ok: true, shard: resp });

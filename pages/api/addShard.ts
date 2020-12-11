@@ -8,7 +8,7 @@ import assert from 'assert';
 import { NextApiRequest, NextApiResponse } from 'next';
 import APIErrorHandler from '../../lib/APIErrorHandler';
 import { assertAdmin, auth } from '../../lib/MiscAuth';
-import { mongos } from '../../lib/mongo/database';
+import { mdb } from '../../lib/mongo/database';
 import status from '../../lib/types/Response';
 
 async function addShard(req: NextApiRequest, res: NextApiResponse<status>) {
@@ -20,8 +20,8 @@ async function addShard(req: NextApiRequest, res: NextApiResponse<status>) {
     //now get admin priviledges
     await admin;
 
-    await mongos.connect();
-    const db = mongos.db('admin');
+    // await mongos.connect();
+    const db = await mdb('admin');
     const resp = await db.command({ addShard: location });
 
     res.status(200).json({ ok: true, shard: resp });

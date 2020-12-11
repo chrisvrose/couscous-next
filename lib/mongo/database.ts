@@ -11,7 +11,7 @@ let mongoclient: MongoClient = null;
  * Connect to mongodb and get db
  * @returns database
  */
-export async function mdb() {
+export async function mdb(dbname: string = 'test') {
     // if (!mongos.isConnected) {
     //     console.log('I>connecting');
     //     mongoclient = await mongos.connect();
@@ -21,7 +21,7 @@ export async function mdb() {
         mongoclient = await mongos.connect();
     }
 
-    return mongoclient.db('test');
+    return mongoclient.db(dbname);
     // const conn = await mongos.connect();
     // return conn.db('test');
 }

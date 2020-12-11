@@ -6,7 +6,7 @@ import { auth } from '../../../lib/MiscAuth';
 import * as File from '../../../lib/mysql/File';
 import status from '../../../lib/types/Response';
 
-async function read(req: NextApiRequest, res: NextApiResponse<status>) {
+async function release(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
     // await mongos.connect();
     const { path, fd } = await File.getPathFdFromBody(req);
@@ -16,4 +16,4 @@ async function read(req: NextApiRequest, res: NextApiResponse<status>) {
     res.json({ ok: true, released });
 }
 
-export default APIErrorHandler(read);
+export default APIErrorHandler(release);

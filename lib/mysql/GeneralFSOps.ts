@@ -15,61 +15,6 @@ interface getAttrResult {
     mongofileuid?: string;
 }
 
-export async function getattr(pathstr: string): Promise<getAttrResult> {
-    try {
-        const id = await File.getFile(pathstr);
-        const [[desc]] = await db.execute<RowDataPacket[]>(
-            'select name,permissions,"file" as type,mongofileuid from file where fid=?',
-            [id]
-        );
-        const bucket = await getBucket();
-        if (desc.mongofileuid) {
-            const [res] = await bucket
-                .find(
-                    { filename: desc.mongofileuid },
-                    { sort: { uploadDate: -1 } }
-                )
-                .toArray();
-            if (res) desc.size = res.length;
-            else throw new ResponseError('could not get mongo file', 404);
-        } else {
-            desc.size = 0;
-        }
-
-        return desc as getAttrResult;
-        //desc[0]
-    } catch (e) {
-        if (e instanceof ResponseError && e.statusCode === 404) {
-            //this is an error trying to get file, lets try getting a folder
-            try {
-                const id = await Folder.getFolderID(pathstr);
-                if (id) {
-                    const [[desc]] = await db.execute<RowDataPacket[]>(
-                        'select name,permissions,"folder" as type from folder where foid=?',
-                        [id]
-                    );
-
-                    return desc as getAttrResult;
-                } else {
-                    return {
-                        name: '/',
-                        permissions: 0o755,
-                        type: 'folder',
-                    };
-                }
-            } catch (err) {
-                if (err instanceof ResponseError && err.statusCode === 404) {
-                    throw new ResponseError('could not find', 404);
-                }
-                // propagate e
-                throw err;
-            }
-        }
-        // propagate e
-        throw e;
-    }
-}
-
 /**
  * extract out path and perm for body
  * @param param0 body
@@ -112,6 +57,77 @@ export function getSrcDestFromBody({ body }: NextApiRequest) {
     }
 }
 
+export function getTimesFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body.path === 'string', 'Expected string');
+        assert(typeof body.atime === 'number', 'Expected atime');
+        assert(typeof body.mtime === 'number', 'Expected mtime');
+        return {
+            path: body.path as string,
+            atime: new Date(body.atime),
+            mtime: new Date(body.mtime),
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
+export async function getattr(pathstr: string): Promise<getAttrResult> {
+    try {
+        const id = await File.getFile(pathstr);
+        const [[desc]] = await db.execute<RowDataPacket[]>(
+            'select name,permissions,atime,ctime,mtime,"file" as type,mongofileuid from file where fid=?',
+            [id]
+        );
+        const bucket = await getBucket();
+        if (desc.mongofileuid) {
+            const [res] = await bucket
+                .find(
+                    { filename: desc.mongofileuid },
+                    { sort: { uploadDate: -1 } }
+                )
+                .toArray();
+            if (res) desc.size = res.length;
+            else throw new ResponseError('could not get mongo file', 404);
+        } else {
+            desc.size = 0;
+        }
+
+        return desc as getAttrResult;
+        //desc[0]
+    } catch (e) {
+        if (e instanceof ResponseError && e.statusCode === 404) {
+            //this is an error trying to get file, lets try getting a folder
+            try {
+                const id = await Folder.getFolderID(pathstr);
+                if (id) {
+                    const [[desc]] = await db.execute<RowDataPacket[]>(
+                        'select name,permissions,atime,ctime,mtime,"folder" as type from folder where foid=?',
+                        [id]
+                    );
+
+                    return desc as getAttrResult;
+                } else {
+                    return {
+                        name: '/',
+                        permissions: 0o755,
+                        type: 'folder',
+                    };
+                }
+            } catch (err) {
+                if (err instanceof ResponseError && err.statusCode === 404) {
+                    throw new ResponseError('could not find', 404);
+                }
+                // propagate e
+                throw err;
+            }
+        }
+        // propagate e
+        throw e;
+    }
+}
+
 export async function assertUnique(itemname: string, parentfoid: number) {
     try {
         //morph function call based on if parentfoid is null
@@ -136,7 +152,7 @@ export async function chmod(pathstr: string, newPerms: number, uid: number) {
             'update file set permissions=? where fid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
             [newPerms, id, uid, uid]
         );
-        console.log('I>', result);
+        // console.log('I>', result);
         return result.affectedRows;
         //desc[0]
     } catch (e) {
@@ -181,7 +197,7 @@ export async function rename(src: string, dest: string, uid: number) {
             [parentfoid, newName, id, uid, uid]
         );
 
-        console.log('I>', result);
+        // console.log('I>', result);
         return result.affectedRows;
         //desc[0]
     } catch (e) {
@@ -204,6 +220,59 @@ export async function rename(src: string, dest: string, uid: number) {
                 } else {
                     // cannot chmod the folder
                     throw new ResponseError('cannot allow rename', 401);
+                }
+            } catch (err) {
+                if (err instanceof ResponseError && err.statusCode === 404) {
+                    throw new ResponseError('could not find', 404);
+                }
+                // propagate e
+                throw err;
+            }
+        }
+        // propagate e
+        throw e;
+    }
+}
+
+/**
+ * Touch a file
+ * @param pathstr Path string
+ * @param mtime modified time
+ * @param atime accessed time
+ * @param uid uid
+ */
+export async function utime(
+    pathstr: string,
+    mtime: Date,
+    atime: Date,
+    uid: number
+) {
+    try {
+        const id = await File.getFile(pathstr);
+        //update only if user owns orz` belongs to group
+        await File.assertFidPerms(id, uid, 0);
+        const [result] = await db.execute<ResultSetHeader>(
+            'update file set mtime=?,atime=? where fid=?',
+            [mtime, atime, id]
+        );
+        // console.log('I>', result);
+        return result.affectedRows;
+        //desc[0]
+    } catch (e) {
+        if (e instanceof ResponseError && e.statusCode === 404) {
+            //this is an error trying to get file, lets try getting a folder
+            try {
+                const id = await Folder.getFolderID(pathstr);
+                if (id) {
+                    const [result] = await db.execute<ResultSetHeader>(
+                        'update folder set mtime=?,atime=? where foid=?',
+                        [mtime, atime, id]
+                    );
+
+                    return result.affectedRows;
+                } else {
+                    // cannot chmod the folder
+                    throw new ResponseError('cannot allow chmod', 401);
                 }
             } catch (err) {
                 if (err instanceof ResponseError && err.statusCode === 404) {

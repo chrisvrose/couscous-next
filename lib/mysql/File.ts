@@ -1,6 +1,8 @@
 import assert from 'assert';
+import multiStream from 'multistream';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 import { NextApiRequest } from 'next';
+import { Readable } from 'stream';
 import * as FileUtils from '../FileUtils';
 import { getBucket } from '../mongo/database';
 // import path from 'path';
@@ -22,6 +24,42 @@ export async function getReadOperationFromBody({ body }: NextApiRequest) {
             fd: parseInt(body.fd),
             length: parseInt(body.length),
             position: parseInt(body.position),
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
+export function getPathSizeFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body.path === 'string', 'Expected path');
+        assert(typeof body.size === 'number', 'Expected size');
+        return {
+            path: body.path as string,
+            size: parseInt(body.size),
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
+export function getWriteOperationFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body.fd === 'number', 'Expected fd');
+        assert(typeof body.length === 'number', 'Expected length');
+        assert(typeof body.position === 'number', 'Expected position');
+        assert(typeof body.buffer === 'object', 'Expected buffer');
+        assert(Array.isArray(body.buffer), 'Expected buffer as array');
+        const buffer = Buffer.from(body.buffer);
+        const length = parseInt(body.length);
+        // perform a lengths check before returning it
+        return {
+            fd: parseInt(body.fd),
+            length: length <= buffer.length ? length : buffer.length,
+            position: parseInt(body.position),
+            buffer,
         };
     } catch (e) {
         throw new ResponseError(e.message ?? 'Malformed request', 400);
@@ -82,7 +120,7 @@ export async function getFile(pathstr: string) {
                 [parentfoid]
             )
         )[0];
-    console.log(rows, parentfoid);
+    // console.log(rows, parentfoid);
     // TODO
     let ans = rows.filter(e => e.name == fileName) as {
         name: string;
@@ -174,7 +212,7 @@ export async function assertFDPerms(
 export async function open(pathstr: string, uid: number, flags: number) {
     const fid = await getFile(pathstr);
     await assertFidPerms(fid, uid, flags);
-    console.log(fid);
+    // console.log(fid);
     const [res] = await db.execute<ResultSetHeader>(
         'INSERT INTO usersession(uid,operation,fid) values(?,?,?)',
         [uid, flags, fid]
@@ -239,7 +277,7 @@ export async function read(
     }
     const file = res[0] as { fid: number; mongofileuid?: string };
     await assertFidPerms(file.fid, uid, 0);
-    console.log(file.mongofileuid);
+    // console.log(file.mongofileuid);
 
     if (file.mongofileuid !== null) {
         const bucket = await getBucket();
@@ -280,5 +318,272 @@ export async function read(
         });
     } else {
         return Buffer.from([]);
+    }
+}
+
+export async function write(
+    fd: number,
+    uid: number,
+    length: number,
+    position: number,
+    buffer: Buffer
+) {
+    console.log('I>starting write');
+    await assertFDPerms(fd, 1);
+    //get fs results
+    const [res] = await db.execute<RowDataPacket[]>(
+        'select file.fid,mongofileuid from file join usersession on usersession.fid=file.fid where sessionid=?',
+        [fd]
+    );
+    if (res.length < 1) {
+        console.log('E>what happened here');
+        throw new ResponseError('did not find file', 404);
+    }
+    const file = res[0] as { fid: number; mongofileuid?: string };
+    await assertFidPerms(file.fid, uid, 1);
+    const fidString = file.fid.toString();
+    // console.log(file.mongofileuid);
+    const bucket = await getBucket();
+    if (file.mongofileuid === null) {
+        console.log('I>write,new file');
+        return new Promise<number>((resolve, reject) => {
+            //convert buffer to readable stream and feed it into the bucket upload stream
+            // reject on error otherwise move to the next part
+            Readable.from(buffer.slice(0, length))
+                .pipe(bucket.openUploadStream(fidString))
+                .on('error', error => {
+                    console.log('W>write error', error);
+                    reject(error);
+                })
+                .on('finish', () => {
+                    resolve(length);
+                });
+        }).then(async result => {
+            const [rows] = await db.execute<ResultSetHeader>(
+                'update file set mongofileuid=? where fid=?',
+                [fidString, file.fid]
+            );
+            assert(rows.affectedRows > 0, 'Expected change in files');
+            // pass this value forward, assured that the central db has been updated
+            return result;
+        });
+    } else {
+        //file exists, attempt to modify
+        console.log('I>write,existing');
+        //get size
+        const [rows] = await bucket
+            .find({ filename: file.mongofileuid }, { sort: { uploadDate: -1 } })
+            .toArray();
+        const size: number = rows.length;
+
+        if (size + 1 < position)
+            throw new ResponseError('Invalid place to start writing from');
+
+        console.log('starting to write size', size, position, length);
+
+        // const newFileStream = combinedStream.create();
+        const streams = [];
+        const readStream = bucket.openDownloadStreamByName(fidString, {
+            start: 0,
+            end: position,
+            revision: -1,
+        });
+        streams.push(readStream);
+        streams.push(Readable.from(buffer.slice(0, length)));
+
+        if (position + length < size - 1) {
+            // let bucket2: GridFSBucketReadStream;
+            const fileEnding = bucket.openDownloadStreamByName(fidString, {
+                start: position + length + 1,
+                end: size,
+                revision: -1,
+            });
+            streams.push(fileEnding);
+            console.log('Opened secondary boundary');
+        }
+
+        return new Promise<number>((resolve, reject) => {
+            const newFileStream = multiStream.obj(streams);
+            newFileStream.on('error', err => reject(new ResponseError()));
+
+            //add the files to this stream
+            // newFileStream.append(readStream);
+
+            // console.log('Writing to ', fidString);
+            const writeStream = bucket.openUploadStream(fidString);
+            // writeStream
+
+            newFileStream
+                .on('data', data => console.log('My data', data))
+                .pipe(writeStream)
+                .on('error', () => reject(new ResponseError()))
+                .on('finish', () => process.nextTick(resolve, length));
+            // newFileStream
+            //     .pipe(writeStream)
+            //     .on('error', err => reject(new ResponseError()))
+            //     .on('finish', () => resolve(length));
+        });
+        // return new Promise<number>((resolve, reject) => {
+        //     readStream.on('error', () => {
+        //         writeStream.end(() =>
+        //             reject(new ResponseError('failed to write'))
+        //         );
+        //     });
+        //     writeStream.on('error', myerr => {
+        //         console.log(myerr);
+        //         reject(new ResponseError());
+        //     });
+        //     //copy over the initial bytes
+        //     readStream.pipe(writeStream, { end: false })
+        //     //now copy over my bytes
+        //     console.log('GOING TO WRITE', buffer.slice(0, length));
+        //     Readable.from(buffer.slice(0, length)).pipe(writeStream, {
+        //         end: false,
+        //     });
+
+        //     if (position + length < size - 1) {
+        //         //this part, there's some stream left too;
+        //         //bucket2 is guaranteed to exist
+        //         writeStream.on('finish', () => {
+        //             console.log('I>Resolving write on existing');
+        //             resolve(length);
+        //         });
+        //         bucket2.pipe(writeStream);
+        //         // resolve(length);
+        //     } else {
+        //         //theres nothing left
+        //         writeStream.end(() => {
+        //             console.log('I>Resolving write on empty');
+        //             resolve(length);
+        //         });
+        //     }
+        // });
+        // throw new ResponseError('Not yet supported');
+    }
+}
+
+export async function unlink(uid: number, pathStr: string) {
+    const fid = await getFile(pathStr);
+    const bucket = await getBucket();
+    // bucket.
+
+    const [res] = await db.execute<RowDataPacket[]>(
+        'select fid,mongofileuid from file where fid=?',
+        [fid]
+    );
+    if (res.length < 1) {
+        throw new ResponseError('did not find file', 404);
+    }
+    const file = res[0] as { fid: number; mongofileuid?: string };
+    await assertFidPerms(file.fid, uid, 1);
+    if (file.mongofileuid) {
+        const filesets = await bucket
+            .find({ filename: file.mongofileuid }, { sort: { uploadDate: -1 } })
+            .toArray();
+
+        //wait for all versions to delete
+        try {
+            await Promise.all(
+                filesets.map(doc => {
+                    const id = doc._id;
+                    return new Promise((resolve, reject) => {
+                        bucket.delete(id, (error, result) => {
+                            if (error) {
+                                reject(error);
+                                return;
+                            }
+                            resolve(result);
+                        });
+                    });
+                })
+            );
+        } catch (e) {
+            console.log('Promise all', e);
+            const [rows] = await db.execute<ResultSetHeader>(
+                'update file set mongofileuid=? where fid=?',
+                [null, fid]
+            );
+            throw new ResponseError();
+        }
+
+        // for(let doc of filesets){
+        //     const id = doc._id;
+        //     await bucket.delete()
+        // }
+    }
+
+    const [rows] = await db.execute<ResultSetHeader>(
+        'delete from file where fid=?',
+        [fid]
+    );
+
+    return rows.affectedRows;
+}
+
+export async function truncate(uid: number, pathStr: string, size: number) {
+    const fid = await getFile(pathStr);
+
+    await assertFidPerms(fid, uid, 1);
+
+    const [rows] = await db.execute<RowDataPacket[]>(
+        'select mongofileuid from file where fid=?',
+        [fid]
+    );
+
+    if (rows.length === 0) throw new ResponseError('file not found', 404);
+
+    const mfileId: string = rows[0].mongofileuid;
+
+    if (mfileId) {
+        const bucket = await getBucket();
+
+        if (size === 0) {
+            const filesets = await bucket
+                .find({ filename: mfileId }, { sort: { uploadDate: -1 } })
+                .toArray();
+            try {
+                await Promise.all(
+                    filesets.map(doc => {
+                        const id = doc._id;
+                        return new Promise((resolve, reject) => {
+                            bucket.delete(id, (error, result) => {
+                                if (error) {
+                                    reject(error);
+                                    return;
+                                }
+                                resolve(result);
+                            });
+                        });
+                    })
+                );
+                const [rows] = await db.execute<ResultSetHeader>(
+                    'update file set mongofileuid=? where fid=?',
+                    [null, fid]
+                );
+                return 0;
+            } catch (e) {
+                console.log('Promise all', e);
+
+                throw new ResponseError();
+            }
+        }
+
+        const filesets = await bucket
+            .find({ filename: mfileId }, { sort: { uploadDate: -1 } })
+            .toArray();
+        const fileSize = filesets[0].length;
+        const readStream = bucket.openDownloadStreamByName(mfileId, {
+            start: 0,
+            revision: -1,
+            end: fileSize < size ? fileSize : size,
+        });
+        return new Promise<number>((resolve, reject) => {
+            readStream
+                .pipe(bucket.openUploadStream(mfileId))
+                .on('error', err => reject(err))
+                .on('finish', () => resolve(size));
+        });
+    } else {
+        return 0;
     }
 }
