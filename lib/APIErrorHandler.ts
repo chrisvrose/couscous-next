@@ -20,6 +20,7 @@ export default function (
             console.log(req?.url, `${(time2 - time1).toFixed(4)} ms`);
         } catch (err) {
             if (err instanceof ResponseError) {
+                console.error('E>Response Error', req?.url, req?.body, err);
                 res.status(err.statusCode).json({
                     ok: false,
                     status: err.message,

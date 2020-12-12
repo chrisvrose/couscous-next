@@ -96,7 +96,7 @@ export async function getContents(pathstr: string) {
             )
         )[0];
     }
-    console.log('result:', foid, res);
+    // console.log('result:', foid, res);
     return res.map(e => e.name) as string[];
 }
 

@@ -77,7 +77,7 @@ export async function getattr(pathstr: string): Promise<getAttrResult> {
     try {
         const id = await File.getFile(pathstr);
         const [[desc]] = await db.execute<RowDataPacket[]>(
-            'select name,permissions,atime,ctime,mtime,"file" as type,mongofileuid from file where fid=?',
+            'select name,permissions,uid,gid,atime,ctime,mtime,"file" as type,mongofileuid from file where fid=?',
             [id]
         );
         const bucket = await getBucket();
@@ -103,7 +103,7 @@ export async function getattr(pathstr: string): Promise<getAttrResult> {
                 const id = await Folder.getFolderID(pathstr);
                 if (id) {
                     const [[desc]] = await db.execute<RowDataPacket[]>(
-                        'select name,permissions,atime,ctime,mtime,"folder" as type from folder where foid=?',
+                        'select name,permissions,uid,gid,atime,ctime,mtime,"folder" as type from folder where foid=?',
                         [id]
                     );
 

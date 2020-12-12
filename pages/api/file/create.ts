@@ -9,9 +9,9 @@ import status from '../../../lib/types/Response';
 async function getattr(req: NextApiRequest, res: NextApiResponse<status>) {
     const authdetails = await auth(req);
     const { path, permissions } = await GeneralOps.getPathPermsFromBody(req);
-    const inserted = await File.create(path, authdetails.uid, permissions);
+    const result = await File.create(path, authdetails.uid, permissions);
     // const changed = await GeneralOps.chmod(path, permissions, authdetails.uid);
-    res.json({ ok: true, inserted });
+    res.json({ ok: true, result });
 }
 
 export default APIErrorHandler(getattr);

@@ -242,7 +242,10 @@ export async function create(pathStr: string, uid: number, mode: number) {
         'insert into file(name,uid,gid,permissions,parentfoid,mongofileuid) values(?,?,?,?,?,?)',
         [itemname, uid, gidcalc, mode, parentfoid, null]
     );
-    return rows.insertId;
+    assert(rows.affectedRows > 0, 'expected new file');
+
+    //shortcut to open
+    return open(pathStr, uid, 3); // rows.insertId;
 }
 
 /**
