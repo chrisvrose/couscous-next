@@ -9,15 +9,10 @@ async function read(req: NextApiRequest, res: NextApiResponse) {
     const authResult = await auth(req);
     // await mongos.connect();
     const { fd, length, position } = await File.getReadOperationFromBody(req);
-    // TODO
-    const result = await File.read(fd, authResult.uid, length, position);
-    // const result = await File.open(path, authResult.uid, operation);
 
-    // console.log(result);
+    const result = await File.read(fd, authResult.uid, length, position);
+
     res.send(result);
-    // res.setHeader('Content-Type', 'application/octet-stream');
-    // res.end(result);
-    // res.json({ ok: true });
 }
 
 export default APIErrorHandler(read);

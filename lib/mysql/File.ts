@@ -201,7 +201,7 @@ export async function assertFDPerms(
     }
 }
 
-// TODO implement checks
+// FIXME implement checks
 /**
  * Open a file, creating a fd
  * @param pathstr Path string

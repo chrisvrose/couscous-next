@@ -10,14 +10,9 @@ async function unlink(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
     // await mongos.connect();
     const { path, size } = File.getPathSizeFromBody(req);
-    // TODO
-    const result = await File.truncate(authResult.uid, path, size);
-    // const result = await File.open(path, authResult.uid, operation);
 
-    // console.log(result);
-    // res.send(result);
-    // res.setHeader('Content-Type', 'application/octet-stream');
-    // res.end(result);
+    const result = await File.truncate(authResult.uid, path, size);
+
     res.json({ ok: true, result });
 }
 
