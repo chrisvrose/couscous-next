@@ -1,6 +1,15 @@
-api.rest
-.env
-query.sql
+# Docs
+/docs
+
+#APIs
+/*.rest
+
+#Env files
+/*.env
+
+# Misc 
+/query.sql
+
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
 # dependencies
