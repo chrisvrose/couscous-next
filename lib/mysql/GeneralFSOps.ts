@@ -76,7 +76,7 @@ export function getTimesFromBody({ body }: NextApiRequest) {
 export async function getattr(pathstr: string): Promise<getAttrResult> {
     try {
         const id = await File.getFile(pathstr);
-        const [[desc]] = await db.execute<RowDataPacket[]>(
+        const [[desc]] = await db.query<RowDataPacket[]>(
             'select name,permissions,uid,gid,atime,ctime,mtime,"file" as type,mongofileuid from file where fid=?',
             [id]
         );
@@ -102,7 +102,7 @@ export async function getattr(pathstr: string): Promise<getAttrResult> {
             try {
                 const id = await Folder.getFolderID(pathstr);
                 if (id) {
-                    const [[desc]] = await db.execute<RowDataPacket[]>(
+                    const [[desc]] = await db.query<RowDataPacket[]>(
                         'select name,permissions,uid,gid,atime,ctime,mtime,"folder" as type from folder where foid=?',
                         [id]
                     );
@@ -131,7 +131,7 @@ export async function getattr(pathstr: string): Promise<getAttrResult> {
 export async function assertUnique(itemname: string, parentfoid: number) {
     try {
         //morph function call based on if parentfoid is null
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             parentfoid !== null
                 ? 'select name from folder where parentfoid=? union select name from file where parentfoid=?'
                 : 'select name from folder where parentfoid is null union select name from file where parentfoid is null',
@@ -139,6 +139,31 @@ export async function assertUnique(itemname: string, parentfoid: number) {
         );
         const itemnames = rows.map(e => e.name) as string[];
         assert(!itemnames.includes(itemname));
+        return true;
+    } catch (e) {
+        throw new ResponseError('existing file/folder', 400);
+    }
+}
+
+/**
+ * Get one item or none
+ * @param itemname item name
+ * @param parentfoid parent folder id
+ */
+export async function getOneOrNone(itemname: string, parentfoid: number) {
+    try {
+        //morph function call based on if parentfoid is null
+        const [rows] = await db.query<RowDataPacket[]>(
+            parentfoid !== null
+                ? 'select name,"folder" as type  from folder where parentfoid=? union select name,"file" as type from file where parentfoid=?'
+                : 'select name,"folder" as type from folder where parentfoid is null union select name,"file" as type from file where parentfoid is null',
+            parentfoid === null ? undefined : [parentfoid, parentfoid]
+        );
+        const itemnames = rows.map(e => {
+            return { name: e.name, type: e.type };
+        });
+        // assert(!itemnames.includes(itemname));
+        return itemnames.find(e => e.name === itemname);
     } catch (e) {
         throw new ResponseError('existing file/folder', 400);
     }
@@ -148,7 +173,7 @@ export async function chmod(pathstr: string, newPerms: number, uid: number) {
     try {
         const id = await File.getFile(pathstr);
         //update only if user owns orz` belongs to group
-        const [result] = await db.execute<ResultSetHeader>(
+        const [result] = await db.query<ResultSetHeader>(
             'update file set permissions=? where fid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
             [newPerms, id, uid, uid]
         );
@@ -161,7 +186,7 @@ export async function chmod(pathstr: string, newPerms: number, uid: number) {
             try {
                 const id = await Folder.getFolderID(pathstr);
                 if (id) {
-                    const [result] = await db.execute<ResultSetHeader>(
+                    const [result] = await db.query<ResultSetHeader>(
                         'update folder set permissions=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
                         [newPerms, id, uid, uid]
                     );
@@ -192,7 +217,9 @@ export async function rename(src: string, dest: string, uid: number) {
         const parentPath = FileUtils.folderPath(dest);
         const newName = FileUtils.fileName(dest);
         const parentfoid = await Folder.getFolderID(parentPath);
-        const [result] = await db.execute<ResultSetHeader>(
+        await assertUnique(newName, parentfoid);
+
+        const [result] = await db.query<ResultSetHeader>(
             'update file set parentfoid=?,name=? where fid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
             [parentfoid, newName, id, uid, uid]
         );
@@ -209,16 +236,16 @@ export async function rename(src: string, dest: string, uid: number) {
                 const newName = FileUtils.fileName(dest);
                 const parentPath = FileUtils.folderPath(dest);
                 const parentfoid = await Folder.getFolderID(parentPath);
-
+                await assertUnique(newName, parentfoid);
                 if (id) {
-                    const [result] = await db.execute<ResultSetHeader>(
+                    const [result] = await db.query<ResultSetHeader>(
                         'update folder set parentfoid=?,name=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
                         [parentfoid, newName, id, uid, uid]
                     );
 
                     return result.affectedRows;
                 } else {
-                    // cannot chmod the folder
+                    // cannot rename the folder
                     throw new ResponseError('cannot allow rename', 401);
                 }
             } catch (err) {
@@ -251,7 +278,7 @@ export async function utime(
         const id = await File.getFile(pathstr);
         //update only if user owns orz` belongs to group
         await File.assertFidPerms(id, uid, 0);
-        const [result] = await db.execute<ResultSetHeader>(
+        const [result] = await db.query<ResultSetHeader>(
             'update file set mtime=?,atime=? where fid=?',
             [mtime, atime, id]
         );
@@ -264,7 +291,7 @@ export async function utime(
             try {
                 const id = await Folder.getFolderID(pathstr);
                 if (id) {
-                    const [result] = await db.execute<ResultSetHeader>(
+                    const [result] = await db.query<ResultSetHeader>(
                         'update folder set mtime=?,atime=? where foid=?',
                         [mtime, atime, id]
                     );

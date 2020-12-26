@@ -12,7 +12,7 @@ import db from './db';
 export async function add(uid: number) {
     try {
         const atoken = await GenerateJWToken({ uid }); // generateAuthToken({uid});
-        const [rows] = await db.execute<ResultSetHeader>(
+        const [rows] = await db.query<ResultSetHeader>(
             'INSERT INTO atokens values(?,?);',
             [uid, atoken]
         );
@@ -30,7 +30,7 @@ export async function add(uid: number) {
  */
 export async function getExists(uid: number, atoken: string) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'SELECT COUNT(*) as count from atokens where uid=? and atoken=?;',
             [uid, atoken]
         );
@@ -45,7 +45,7 @@ export async function getExists(uid: number, atoken: string) {
 
 export async function remove(uid: number, atoken: string) {
     try {
-        const [rows] = await db.execute<ResultSetHeader>(
+        const [rows] = await db.query<ResultSetHeader>(
             'DELETE FROM atokens WHERE uid=? and atoken=?',
             [uid, atoken]
         );
@@ -57,7 +57,7 @@ export async function remove(uid: number, atoken: string) {
 
 export async function removeAll(uid: number) {
     try {
-        const [rows] = await db.execute<ResultSetHeader>(
+        const [rows] = await db.query<ResultSetHeader>(
             'DELETE FROM atokens WHERE uid=?',
             [uid]
         );
@@ -69,7 +69,7 @@ export async function removeAll(uid: number) {
 
 export async function isAdmin(atoken: string) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select uid,role from atokens natural join users where atoken=?;',
             [atoken]
         );

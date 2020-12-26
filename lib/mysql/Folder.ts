@@ -50,13 +50,13 @@ export async function getFolderID(pathstr: string): Promise<number> {
             // null finds in sql cannot be with =, need 'is'
             if (id === null) {
                 res = (
-                    await db.execute<RowDataPacket[]>(
+                    await db.query<RowDataPacket[]>(
                         'select name,foid from folder where parentfoid is null'
                     )
                 )[0] as { name: string; foid: number }[];
             } else {
                 res = (
-                    await db.execute<RowDataPacket[]>(
+                    await db.query<RowDataPacket[]>(
                         'select name,foid from folder where parentfoid=?',
                         [id]
                     )
@@ -84,13 +84,13 @@ export async function getContents(pathstr: string) {
     let res: RowDataPacket[];
     if (foid === null) {
         res = (
-            await db.execute<RowDataPacket[]>(
+            await db.query<RowDataPacket[]>(
                 'select name from folder where parentfoid is null UNION select name from file where parentfoid is null;'
             )
         )[0];
     } else {
         res = (
-            await db.execute<RowDataPacket[]>(
+            await db.query<RowDataPacket[]>(
                 'select name from folder where parentfoid=? UNION select name from file where parentfoid=?;',
                 [foid, foid]
             )
@@ -107,7 +107,7 @@ export async function create(pathStr: string, uid: number, mode: number) {
     if (parentfoid === null) {
         gidcalc = 1; //the first group ever created
     } else {
-        const [rows] = await db.execute('select gid from folder where foid=?', [
+        const [rows] = await db.query('select gid from folder where foid=?', [
             parentfoid,
         ]);
         gidcalc = rows[0].gid;
@@ -117,7 +117,7 @@ export async function create(pathStr: string, uid: number, mode: number) {
     await assertUnique(itemname, parentfoid);
 
     // now to create an entry
-    const [rows] = await db.execute<ResultSetHeader>(
+    const [rows] = await db.query<ResultSetHeader>(
         'insert into folder(name,uid,gid,permissions,parentfoid) values(?,?,?,?,?)',
         [itemname, uid, gidcalc, mode, parentfoid]
     );
@@ -130,7 +130,7 @@ export async function remove(pathStr: string) {
     const myfoid = await getFolderID(mypath);
 
     // check that we shall not orphan any files and folders, and then proceed to delete them
-    const [rows] = await db.execute<ResultSetHeader>(
+    const [rows] = await db.query<ResultSetHeader>(
         'delete from folder where foid=? and (select count(foid) from (SELECT * FROM folder) AS X where parentfoid=?)<1 and (select count(fid) from file where parentfoid=?)<1;',
         [myfoid, myfoid, myfoid]
     );

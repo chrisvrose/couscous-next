@@ -36,7 +36,7 @@ export async function authPass(
     pwd: string
 ): Promise<authPassResult> {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select uid,pwd,role from users where email=?;',
             [email]
         );
@@ -56,13 +56,13 @@ export async function authPass(
 }
 
 // async getShortAll(){
-//     const [rows,fields] =  db.execute('select uid,email from users')[0];
+//     const [rows,fields] =  db.query('select uid,email from users')[0];
 // }
 export async function add({ name, email, pwd, role }: User): Promise<UserID> {
     try {
         const salt = await bcrypt.genSalt();
         const hashedpwd = await bcrypt.hash(pwd, salt);
-        const [rows] = await db.execute<ResultSetHeader>(
+        const [rows] = await db.query<ResultSetHeader>(
             'insert into users(name,email,pwd,role) values(?,?,?,?)',
             [name, email, hashedpwd, role]
         );
@@ -125,7 +125,7 @@ export async function updatePwd(uid: number, newPwd: string) {
     try {
         const salt = await bcrypt.genSalt();
         const hashedPwd = await bcrypt.hash(newPwd, salt);
-        const [rows] = await db.execute<ResultSetHeader>(
+        const [rows] = await db.query<ResultSetHeader>(
             'update users set pwd=? where uid=?',
             [hashedPwd, uid]
         );
@@ -137,7 +137,7 @@ export async function updatePwd(uid: number, newPwd: string) {
 
 export async function toUID(email: string) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select uid from users where email=?',
             [email]
         );
@@ -149,7 +149,7 @@ export async function toUID(email: string) {
 
 export async function getUser(uid: number) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select name,email,role from users where uid=?',
             [uid]
         );
@@ -161,7 +161,7 @@ export async function getUser(uid: number) {
 
 export async function getAll() {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select uid,email,name,role from users;'
         );
 
@@ -173,7 +173,7 @@ export async function getAll() {
 
 export async function setRole({ uid, role }: UserIDAndRole) {
     try {
-        const [result] = await db.execute<ResultSetHeader>(
+        const [result] = await db.query<ResultSetHeader>(
             'update users set role=? where uid=?',
             [role, uid]
         );

@@ -59,7 +59,7 @@ export function getGIDFromReq({ query }: NextApiRequest): groupID {
 
 export async function getAll() {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select * from usergroups'
         );
         return rows;
@@ -70,7 +70,7 @@ export async function getAll() {
 
 export async function kick(uid: number, gid: number) {
     try {
-        const [res] = await db.execute<ResultSetHeader>(
+        const [res] = await db.query<ResultSetHeader>(
             'delete from groupmember where uid=? and gid=?',
             [uid, gid]
         );
@@ -82,7 +82,7 @@ export async function kick(uid: number, gid: number) {
 
 export async function invite(uid: number, gid: number) {
     try {
-        const [res] = await db.execute<ResultSetHeader>(
+        const [res] = await db.query<ResultSetHeader>(
             'insert ignore into groupmember values(?,?)',
             [uid, gid]
         );
@@ -94,7 +94,7 @@ export async function invite(uid: number, gid: number) {
 
 export async function getMembers(gid: number) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select uid,name,email,role from groupmember natural join users where gid=?',
             [gid]
         );
@@ -106,7 +106,7 @@ export async function getMembers(gid: number) {
 
 export async function getOneMemberList(uid: number) {
     try {
-        const [rows] = await db.execute<RowDataPacket[]>(
+        const [rows] = await db.query<RowDataPacket[]>(
             'select gid,name from usergroups natural join groupmember where uid=?',
             [uid]
         );
@@ -123,7 +123,7 @@ export async function getOneMemberList(uid: number) {
  */
 export async function add(name: string) {
     try {
-        const [res] = await db.execute<ResultSetHeader>(
+        const [res] = await db.query<ResultSetHeader>(
             'insert into usergroups(name) values(?)',
             [name]
         );
@@ -135,7 +135,7 @@ export async function add(name: string) {
 
 export async function rename(gid: number, newName: string) {
     try {
-        const [res] = await db.execute<ResultSetHeader>(
+        const [res] = await db.query<ResultSetHeader>(
             'update usergroups set name=? where gid=?',
             [newName, gid]
         );

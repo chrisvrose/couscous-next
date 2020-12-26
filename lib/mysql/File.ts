@@ -9,7 +9,7 @@ import { getBucket } from '../mongo/database';
 import ResponseError from '../types/ResponseError';
 import db from './db';
 import * as Folder from './Folder';
-import { assertUnique } from './GeneralFSOps';
+import { getOneOrNone } from './GeneralFSOps';
 
 //#region parse Inputs
 export async function getReadOperationFromBody({ body }: NextApiRequest) {
@@ -108,14 +108,14 @@ export async function getFile(pathstr: string) {
     let rows: RowDataPacket[];
     if (parentfoid === null)
         rows = (
-            await db.execute<RowDataPacket[]>(
+            await db.query<RowDataPacket[]>(
                 'select name,fid from file where parentfoid is null',
                 [parentfoid]
             )
         )[0];
     else
         rows = (
-            await db.execute<RowDataPacket[]>(
+            await db.query<RowDataPacket[]>(
                 'select name,fid from file where parentfoid=?',
                 [parentfoid]
             )
@@ -143,7 +143,7 @@ export async function getFile(pathstr: string) {
  * @param flags read write as from user 0 - read, 1 - write
  */
 export async function assertFidPerms(fid: number, uid: number, flags: number) {
-    const [rows] = await db.execute<RowDataPacket[]>(
+    const [rows] = await db.query<RowDataPacket[]>(
         'select fid,name,permissions,file.uid ,count(g.uid)>0 as isInGroup,file.uid=? as isOwner from file left join (select * from groupmember  where groupmember.uid=?) as g on file.gid=g.gid where fid=? group by fid;',
         [uid, uid, fid]
     );
@@ -186,7 +186,7 @@ export async function assertFDPerms(
     fd: number,
     wantedOperation: 0 | 1 | 2 | 3
 ) {
-    const [rows] = await db.execute<RowDataPacket[]>(
+    const [rows] = await db.query<RowDataPacket[]>(
         'select operation from usersession where sessionid=?',
         [fd]
     );
@@ -213,7 +213,7 @@ export async function open(pathstr: string, uid: number, flags: number) {
     const fid = await getFile(pathstr);
     await assertFidPerms(fid, uid, flags);
     // console.log(fid);
-    const [res] = await db.execute<ResultSetHeader>(
+    const [res] = await db.query<ResultSetHeader>(
         'INSERT INTO usersession(uid,operation,fid) values(?,?,?)',
         [uid, flags, fid]
     );
@@ -228,17 +228,22 @@ export async function create(pathStr: string, uid: number, mode: number) {
     if (parentfoid === null) {
         gidcalc = 1; //the first group ever created
     } else {
-        const [rows] = await db.execute('select gid from folder where foid=?', [
+        const [rows] = await db.query('select gid from folder where foid=?', [
             parentfoid,
         ]);
         gidcalc = rows[0].gid;
     }
     //now to assert uniqueness
     const itemname = FileUtils.fileName(pathStr);
-    await assertUnique(itemname, parentfoid);
+    // await assertUnique(itemname, parentfoid);
+    const searchItem = await getOneOrNone(itemname, parentfoid);
+    console.log('I>SEARCHITEM', searchItem);
+
+    //if theres one already, go ahead
+    if (searchItem?.type === 'file') return open(pathStr, uid, 3);
 
     // now to create an entry
-    const [rows] = await db.execute<ResultSetHeader>(
+    const [rows] = await db.query<ResultSetHeader>(
         'insert into file(name,uid,gid,permissions,parentfoid,mongofileuid) values(?,?,?,?,?,?)',
         [itemname, uid, gidcalc, mode, parentfoid, null]
     );
@@ -255,7 +260,7 @@ export async function create(pathStr: string, uid: number, mode: number) {
  * @param fd file descriptor
  */
 export async function release(pathstr: string, uid: number, fd: number) {
-    const [res] = await db.execute<ResultSetHeader>(
+    const [res] = await db.query<ResultSetHeader>(
         'DELETE from usersession where uid=? and sessionid=?',
         [uid, fd]
     );
@@ -271,7 +276,7 @@ export async function read(
     //ensure we are making sure the fd is valid
     await assertFDPerms(fd, 0);
     //get fs results
-    const [res] = await db.execute<RowDataPacket[]>(
+    const [res] = await db.query<RowDataPacket[]>(
         'select file.fid,mongofileuid from file join usersession on usersession.fid=file.fid where sessionid=?',
         [fd]
     );
@@ -299,7 +304,7 @@ export async function read(
             // store this and ensure asking for last bit
             const lastChunkPos = size - 1;
             const computedEnd = position + length;
-
+            // console.log('I>Computed end', computedEnd, position, length);
             bucket
                 .openDownloadStreamByName(file.mongofileuid, {
                     start: position,
@@ -316,6 +321,7 @@ export async function read(
                     rej(new ResponseError('Error reading file', 500));
                 })
                 .on('end', () => {
+                    console.log('i>Read stats', data.length, size);
                     res(data);
                 });
         });
@@ -334,7 +340,7 @@ export async function write(
     console.log('I>starting write');
     await assertFDPerms(fd, 1);
     //get fs results
-    const [res] = await db.execute<RowDataPacket[]>(
+    const [res] = await db.query<RowDataPacket[]>(
         'select file.fid,mongofileuid from file join usersession on usersession.fid=file.fid where sessionid=?',
         [fd]
     );
@@ -362,7 +368,7 @@ export async function write(
                     resolve(length);
                 });
         }).then(async result => {
-            const [rows] = await db.execute<ResultSetHeader>(
+            const [rows] = await db.query<ResultSetHeader>(
                 'update file set mongofileuid=? where fid=?',
                 [fidString, file.fid]
             );
@@ -470,7 +476,7 @@ export async function unlink(uid: number, pathStr: string) {
     const bucket = await getBucket();
     // bucket.
 
-    const [res] = await db.execute<RowDataPacket[]>(
+    const [res] = await db.query<RowDataPacket[]>(
         'select fid,mongofileuid from file where fid=?',
         [fid]
     );
@@ -502,7 +508,7 @@ export async function unlink(uid: number, pathStr: string) {
             );
         } catch (e) {
             console.log('Promise all', e);
-            const [rows] = await db.execute<ResultSetHeader>(
+            const [rows] = await db.query<ResultSetHeader>(
                 'update file set mongofileuid=? where fid=?',
                 [null, fid]
             );
@@ -515,7 +521,7 @@ export async function unlink(uid: number, pathStr: string) {
         // }
     }
 
-    const [rows] = await db.execute<ResultSetHeader>(
+    const [rows] = await db.query<ResultSetHeader>(
         'delete from file where fid=?',
         [fid]
     );
@@ -528,7 +534,7 @@ export async function truncate(uid: number, pathStr: string, size: number) {
 
     await assertFidPerms(fid, uid, 1);
 
-    const [rows] = await db.execute<RowDataPacket[]>(
+    const [rows] = await db.query<RowDataPacket[]>(
         'select mongofileuid from file where fid=?',
         [fid]
     );
@@ -559,7 +565,7 @@ export async function truncate(uid: number, pathStr: string, size: number) {
                         });
                     })
                 );
-                const [rows] = await db.execute<ResultSetHeader>(
+                const [rows] = await db.query<ResultSetHeader>(
                     'update file set mongofileuid=? where fid=?',
                     [null, fid]
                 );
