@@ -9,16 +9,11 @@ import status from '../../../lib/types/Response';
 
 async function unlink(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
-    // await mongos.connect();
-    const { path } = await Folder.getPathFromBody(req);
-    // TODO
-    const result = await File.unlink(authResult.uid, path);
-    // const result = await File.open(path, authResult.uid, operation);
 
-    // console.log(result);
-    // res.send(result);
-    // res.setHeader('Content-Type', 'application/octet-stream');
-    // res.end(result);
+    const { path } = await Folder.getPathFromBody(req);
+
+    const result = await File.unlink(authResult.uid, path);
+
     res.json({ ok: true, result });
 }
 

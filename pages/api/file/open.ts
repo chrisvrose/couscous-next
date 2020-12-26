@@ -8,9 +8,9 @@ import status from '../../../lib/types/Response';
 
 async function open(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
-    // await mongos.connect();
+
     const { operation, path } = await File.getOpenOperationFromBody(req);
-    // TODO
+
     const result = await File.open(path, authResult.uid, operation);
 
     res.json({ ok: true, result });

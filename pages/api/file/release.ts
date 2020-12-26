@@ -8,9 +8,8 @@ import status from '../../../lib/types/Response';
 
 async function release(req: NextApiRequest, res: NextApiResponse<status>) {
     const authResult = await auth(req);
-    // await mongos.connect();
     const { path, fd } = await File.getPathFdFromBody(req);
-    // TODO
+
     const released = await File.release(path, authResult.uid, fd);
 
     res.json({ ok: true, released });
