@@ -129,7 +129,7 @@ export async function getFile(pathstr: string) {
 
     // this is a warning test
     if (ans.length > 1) {
-        console.warn(`W>Multiple files under foid ${parentfoid}`);
+        console.warn(`W>Multiple files under foid ${parentfoid}`, ans);
     }
 
     if (ans.length === 0) throw new ResponseError('Could not find file', 404);
@@ -358,7 +358,9 @@ export async function write(
         return new Promise<number>((resolve, reject) => {
             //convert buffer to readable stream and feed it into the bucket upload stream
             // reject on error otherwise move to the next part
-            Readable.from(buffer.slice(0, length))
+            Readable.from(
+                Buffer.concat([Buffer.alloc(position), buffer.slice(0, length)])
+            )
                 .pipe(bucket.openUploadStream(fidString))
                 .on('error', error => {
                     console.log('W>write error', error);
@@ -385,25 +387,34 @@ export async function write(
             .toArray();
         const size: number = rows.length;
 
-        if (size + 1 < position)
-            throw new ResponseError('Invalid place to start writing from');
+        console.log('I>Write info', size, position);
+        // position can be at max size
+        if (position > size) console.log('W> Sparse file write');
+        //     throw new ResponseError('Invalid place to start writing from');
 
-        console.log('starting to write size', size, position, length);
+        console.log('starting to write size', size, position, length, buffer);
 
         // const newFileStream = combinedStream.create();
         const streams = [];
-        const readStream = bucket.openDownloadStreamByName(fidString, {
-            start: 0,
-            end: position,
-            revision: -1,
-        });
-        streams.push(readStream);
+
+        //till end of file or till position as long as not from segment
+        if (position > 0 && size !== 0) {
+            const readStream = bucket.openDownloadStreamByName(fidString, {
+                start: 0,
+                end: position > size ? size : position,
+                revision: -1,
+            });
+            streams.push(readStream);
+        }
+        //add the zeros as required
+        if (position > size)
+            streams.push(Readable.from(Buffer.alloc(position - size)));
         streams.push(Readable.from(buffer.slice(0, length)));
 
-        if (position + length < size - 1) {
+        if (position + length < size) {
             // let bucket2: GridFSBucketReadStream;
             const fileEnding = bucket.openDownloadStreamByName(fidString, {
-                start: position + length + 1,
+                start: position + length,
                 end: size,
                 revision: -1,
             });
@@ -422,8 +433,8 @@ export async function write(
             const writeStream = bucket.openUploadStream(fidString);
             // writeStream
 
+            // .on('data', data => console.log('My data', data))
             newFileStream
-                .on('data', data => console.log('My data', data))
                 .pipe(writeStream)
                 .on('error', () => reject(new ResponseError()))
                 .on('finish', () => process.nextTick(resolve, length));
@@ -432,42 +443,6 @@ export async function write(
             //     .on('error', err => reject(new ResponseError()))
             //     .on('finish', () => resolve(length));
         });
-        // return new Promise<number>((resolve, reject) => {
-        //     readStream.on('error', () => {
-        //         writeStream.end(() =>
-        //             reject(new ResponseError('failed to write'))
-        //         );
-        //     });
-        //     writeStream.on('error', myerr => {
-        //         console.log(myerr);
-        //         reject(new ResponseError());
-        //     });
-        //     //copy over the initial bytes
-        //     readStream.pipe(writeStream, { end: false })
-        //     //now copy over my bytes
-        //     console.log('GOING TO WRITE', buffer.slice(0, length));
-        //     Readable.from(buffer.slice(0, length)).pipe(writeStream, {
-        //         end: false,
-        //     });
-
-        //     if (position + length < size - 1) {
-        //         //this part, there's some stream left too;
-        //         //bucket2 is guaranteed to exist
-        //         writeStream.on('finish', () => {
-        //             console.log('I>Resolving write on existing');
-        //             resolve(length);
-        //         });
-        //         bucket2.pipe(writeStream);
-        //         // resolve(length);
-        //     } else {
-        //         //theres nothing left
-        //         writeStream.end(() => {
-        //             console.log('I>Resolving write on empty');
-        //             resolve(length);
-        //         });
-        //     }
-        // });
-        // throw new ResponseError('Not yet supported');
     }
 }
 

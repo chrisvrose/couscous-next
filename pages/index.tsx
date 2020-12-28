@@ -28,7 +28,10 @@ export default function Home() {
                         <Card bg="light" className="card-1-hover">
                             <Card.Header>OSS</Card.Header>
                             <Card.Body>
-                                <Card.Text>Engage in OSS</Card.Text>
+                                <Card.Text>
+                                    Engage in OSS and help develop the
+                                    distributed filesystem!
+                                </Card.Text>
 
                                 <Button
                                     href="https://github.com/chrisvrose/couscous-next"
