@@ -38,6 +38,23 @@ export async function getPathPermsFromBody({ body }: NextApiRequest) {
     }
 }
 
+export function getUIDGIDFromBody({ body }: NextApiRequest) {
+    try {
+        assert(body, 'Expected body');
+        assert(typeof body.path === 'string', 'Expected path');
+        assert(typeof body?.uid === 'number', 'expected uid');
+        assert(typeof body?.gid === 'number', 'expected uid');
+
+        return {
+            path: body.path as string,
+            uid: parseInt(body.uid),
+            gid: parseInt(body.gid),
+        };
+    } catch (e) {
+        throw new ResponseError(e.message ?? 'Malformed request', 400);
+    }
+}
+
 export function getSrcDestFromBody({ body }: NextApiRequest) {
     try {
         assert(body, 'Expected body');
@@ -189,6 +206,51 @@ export async function chmod(pathstr: string, newPerms: number, uid: number) {
                     const [result] = await db.query<ResultSetHeader>(
                         'update folder set permissions=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
                         [newPerms, id, uid, uid]
+                    );
+
+                    return result.affectedRows;
+                } else {
+                    // cannot chmod the folder
+                    throw new ResponseError('cannot allow chmod', 401);
+                }
+            } catch (err) {
+                if (err instanceof ResponseError && err.statusCode === 404) {
+                    throw new ResponseError('could not find', 404);
+                }
+                // propagate e
+                throw err;
+            }
+        }
+        // propagate e
+        throw e;
+    }
+}
+
+export async function chown(
+    pathstr: string,
+    newuid: number,
+    newgid: number,
+    uid: number
+) {
+    try {
+        const id = await File.getFile(pathstr);
+        //update only if user owns orz` belongs to group
+        const [result] = await db.query<ResultSetHeader>(
+            'update file set uid=?,gid=? where fid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
+            [newuid, newgid, id, uid, uid]
+        );
+        // console.log('I>', result);
+        return result.affectedRows;
+        //desc[0]
+    } catch (e) {
+        if (e instanceof ResponseError && e.statusCode === 404) {
+            //this is an error trying to get file, lets try getting a folder
+            try {
+                const id = await Folder.getFolderID(pathstr);
+                if (id) {
+                    const [result] = await db.query<ResultSetHeader>(
+                        'update folder set uid=?,gid=? where foid=? and (uid=? or gid in (select gid from groupmember where uid=?))',
+                        [newuid, newgid, id, uid, uid]
                     );
 
                     return result.affectedRows;
