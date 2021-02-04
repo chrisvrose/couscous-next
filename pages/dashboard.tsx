@@ -6,9 +6,11 @@ import ShardMenu from '../components/ShardList';
 import UserListPagelet from '../components/UserListPagelet';
 import UserContext from '../lib/contexts/UserContext';
 
+/**
+ * Dashboard
+ */
 export default function Dashboard() {
     const { userState } = useContext(UserContext);
-
     return (
         <>
             <Header title="Dashboard" activeKey="dashboard" />
@@ -20,6 +22,7 @@ export default function Dashboard() {
                 </Row>
                 <UserListPagelet />
                 <GroupListPageLet />
+                <div style={{ padding: '1rem' }}></div>
             </Container>
         </>
     );

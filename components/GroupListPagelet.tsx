@@ -5,6 +5,7 @@ import UserContext from '../lib/contexts/UserContext';
 import { fetcher } from '../lib/fetcher';
 import { GroupListResponse } from '../lib/types/Group';
 import ResponseError from '../lib/types/ResponseError';
+import AddGroupButton from './AddGroupButton';
 import GroupListComponent from './GroupListComponent';
 
 export default function GroupListPageLet() {
@@ -56,6 +57,10 @@ export default function GroupListPageLet() {
                             <div>No groups</div>
                         )}
                     </Accordion>
+                    <AddGroupButton
+                        doRevalidate={refreshData}
+                        className="full-width spacer-top-margin"
+                    />
                 </Col>
             </Row>
         );

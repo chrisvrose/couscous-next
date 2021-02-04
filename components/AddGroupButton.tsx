@@ -1,33 +1,33 @@
-import React, { useContext, useState } from 'react';
+import React, { FC, useContext, useState } from 'react';
 import { Alert, Button, ButtonGroup, Form, Modal } from 'react-bootstrap';
 import UserContext from '../lib/contexts/UserContext';
-import { GetShardsResponse } from '../lib/ShardInfo';
+import { GroupListResponse } from '../lib/types/Group';
 
 export interface ShardButtonsProps {
     className?: string;
-    doRevalidate: () => Promise<GetShardsResponse>;
+    doRevalidate: () => Promise<GroupListResponse>;
 }
 
 /**
  * shard button
  * @param props props
  */
-export default function ShardButtons(props: ShardButtonsProps) {
+const AddGroupButton: FC<ShardButtonsProps> = function AddGroup(props) {
     const { userState } = useContext(UserContext);
 
     const [show, setShow] = useState(false);
-    const [formData, setFormData] = useState({ loc: '' });
+    const [formData, setFormData] = useState({ name: '' });
     //status -
     const [submitResult, setSubmit] = useState<boolean>(null);
     const handleClose = () => setShow(false);
     const handleOpenAdd = () => {
         setSubmit(null);
-        setFormData({ loc: '' });
+        setFormData({ name: '' });
         setShow(true);
     };
     const handleSubmit = async () => {
         try {
-            const res = await fetch('/api/addShard', {
+            const res = await fetch('/api/group/add', {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
                 method: 'POST',
@@ -53,12 +53,14 @@ export default function ShardButtons(props: ShardButtonsProps) {
                 </ButtonGroup>
                 <Modal show={show} onHide={handleClose}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Add Shard</Modal.Title>
+                        <Modal.Title>Add Group</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
                         <Form.Control
-                            placeholder="Shard location"
-                            onChange={e => setFormData({ loc: e.target.value })}
+                            placeholder="Group name"
+                            onChange={e =>
+                                setFormData({ name: e.target.value })
+                            }
                         />
                         <Alert
                             show={submitResult !== null}
@@ -81,4 +83,5 @@ export default function ShardButtons(props: ShardButtonsProps) {
     } else {
         return <></>;
     }
-}
+};
+export default AddGroupButton;
