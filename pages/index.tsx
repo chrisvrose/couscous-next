@@ -70,7 +70,12 @@ export default function Home() {
                                     Take a look at documentation to understand
                                     the working and setup.
                                 </Card.Text>
-                                <Button variant="primary">Go somewhere</Button>
+                                <Button
+                                    variant="primary"
+                                    href="http://localhost:5000"
+                                >
+                                    Go to Documentation
+                                </Button>
                             </Card.Body>
                         </Card>
                     </Col>
